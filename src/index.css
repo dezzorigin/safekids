@@ -1,0 +1,188 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Reset & Root ─────────────────────────────────────────── */
+:root {
+  --color-bg-primary:   #fef3c7; /* yellow-100 */
+  --color-bg-secondary: #fde68a; /* yellow-200 */
+  --color-bg-card:      #ffffff;
+  --color-border:       #000000;
+  --color-accent:       #000000;
+  --color-accent-dim:   rgba(0, 0, 0, 0.15);
+  --color-text-primary: #000000;
+  --color-text-muted:   #333333;
+  --sidebar-width:      260px;
+  --sidebar-collapsed:  72px;
+  --topnav-height:      64px;
+  --transition-smooth:  linear; /* sharp transitions for brutalism */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Nunito', 'Outfit', 'Inter', ui-sans-serif, system-ui;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Scrollbar Styling ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: #7dd3fc;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}
+
+/* ─── Utility Layer ─────────────────────────────────────────────── */
+@layer utilities {
+  /* Subtle hover lift replaced by brutal shift */
+  .hover-lift {
+    transition: transform 0.1s var(--transition-smooth), box-shadow 0.1s var(--transition-smooth);
+  }
+  .hover-lift:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+  }
+}
+
+/* ─── Component Layer ───────────────────────────────────────────── */
+@layer components {
+  /* Page background */
+  .page-bg {
+    @apply min-h-screen bg-yellow-100;
+  }
+
+  /* Card base */
+  .card {
+    @apply rounded-xl border-4 border-black bg-white p-5 shadow-brutal transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply card hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-bold border-2 border-black shadow-brutal-sm text-black;
+  }
+
+  .badge-active {
+    @apply badge bg-sky-300;
+  }
+
+  .badge-warning {
+    @apply badge bg-yellow-300;
+  }
+
+  .badge-muted {
+    @apply badge bg-slate-200;
+  }
+}
+
+/* ─── Focus Visible ─────────────────────────────────────────────── */
+:focus-visible {
+  outline: 3px solid rgba(56, 189, 248, 0.7);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+/* ─── Custom Evacuation Animations ──────────────────────────────── */
+@keyframes red-flash {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.6; }
+}
+
+.animate-red-flash {
+  animation: red-flash 0.5s ease-in-out 3;
+}
+
+/* ─── Concept Map Animations ─────────────────────────────────────── */
+@keyframes nodePopIn {
+  0%   { opacity: 0; transform: scale(0.5); }
+  70%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.node-enter {
+  opacity: 0;
+  animation: nodePopIn 0.4s ease-out forwards;
+}
+
+@keyframes nodeDropIn {
+  0%   { opacity: 0; transform: translateY(-60px) scale(0.3); }
+  60%  { opacity: 1; transform: translateY(8px) scale(1.1); }
+  80%  { transform: translateY(-4px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cardPopIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes rootPop {
+  0%   { opacity:0; transform: scale(0) rotate(-10deg); }
+  60%  { transform: scale(1.2) rotate(3deg); }
+  80%  { transform: scale(0.95) rotate(-1deg); }
+  100% { opacity:1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes branchSlide {
+  0%   { opacity:0; transform: translateY(-30px) scale(0.8); }
+  70%  { transform: translateY(4px) scale(1.05); }
+  100% { opacity:1; transform: translateY(0) scale(1); }
+}
+
+@keyframes leafPop {
+  0%   { opacity:0; transform: scale(0.5); }
+  70%  { transform: scale(1.1); }
+  100% { opacity:1; transform: scale(1); }
+}
+
+.video-hover-overlay:hover {
+  background: rgba(0,0,0,0.15) !important;
+}
+.video-hover-overlay:hover .video-expand-hint {
+  opacity: 1 !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+
+
+
