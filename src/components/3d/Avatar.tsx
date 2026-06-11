@@ -300,7 +300,7 @@ export default function Avatar() {
   const headColor   = '#fbbf24' // peach
 
   return (
-    <group ref={groupRef} position={[gridToWorld(0, gridSize), 0, gridToWorld(0, gridSize)]}>
+    <group key={currentLevel} ref={groupRef} position={[gridToWorld(0, gridSize), 0, gridToWorld(0, gridSize)]}>
 
       {/* ── Avatar point light ─── */}
       <pointLight color={bodyColor} intensity={0.6} distance={3} />
@@ -308,49 +308,81 @@ export default function Avatar() {
       {/* ── Left Leg ─────────────────────────────────────── */}
       <mesh ref={legLRef} position={[-0.09, 0.15, 0]}>
         <boxGeometry args={[0.1, 0.28, 0.1]} />
-        <meshStandardMaterial color="#1e3a5f" roughness={0.7} />
+        {isEarthquake ? (
+          <meshLambertMaterial color="#1e40af" />
+        ) : (
+          <meshStandardMaterial color="#1e3a5f" roughness={0.7} />
+        )}
       </mesh>
 
       {/* ── Right Leg ────────────────────────────────────── */}
       <mesh ref={legRRef} position={[0.09, 0.15, 0]}>
         <boxGeometry args={[0.1, 0.28, 0.1]} />
-        <meshStandardMaterial color="#1e3a5f" roughness={0.7} />
+        {isEarthquake ? (
+          <meshLambertMaterial color="#1e40af" />
+        ) : (
+          <meshStandardMaterial color="#1e3a5f" roughness={0.7} />
+        )}
       </mesh>
 
       {/* ── Body ─────────────────────────────────────────── */}
       <mesh ref={bodyRef} position={[0, 0.55, 0]} castShadow>
         <boxGeometry args={[0.32, 0.36, 0.18]} />
-        <meshStandardMaterial
-          color={bodyColor}
-          roughness={0.4}
-          metalness={0.2}
-          emissive={bodyColor}
-          emissiveIntensity={status === 'success' ? 0.4 : 0.08}
-        />
+        {isEarthquake ? (
+          <meshLambertMaterial
+            color={bodyColor}
+            emissive={bodyColor}
+            emissiveIntensity={status === 'success' ? 0.4 : 0.08}
+          />
+        ) : (
+          <meshStandardMaterial
+            color={bodyColor}
+            roughness={0.4}
+            metalness={0.2}
+            emissive={bodyColor}
+            emissiveIntensity={status === 'success' ? 0.4 : 0.08}
+          />
+        )}
       </mesh>
 
       {/* ── Left Arm ─────────────────────────────────────── */}
       <mesh ref={armLRef} position={[-0.22, 0.52, 0]}>
         <boxGeometry args={[0.1, 0.28, 0.1]} />
-        <meshStandardMaterial color={bodyColor} roughness={0.5} />
+        {isEarthquake ? (
+          <meshLambertMaterial color={bodyColor} />
+        ) : (
+          <meshStandardMaterial color={bodyColor} roughness={0.5} />
+        )}
       </mesh>
 
       {/* ── Right Arm ────────────────────────────────────── */}
       <mesh ref={armRRef} position={[0.22, 0.52, 0]}>
         <boxGeometry args={[0.1, 0.28, 0.1]} />
-        <meshStandardMaterial color={bodyColor} roughness={0.5} />
+        {isEarthquake ? (
+          <meshLambertMaterial color={bodyColor} />
+        ) : (
+          <meshStandardMaterial color={bodyColor} roughness={0.5} />
+        )}
       </mesh>
 
       {/* ── Neck ─────────────────────────────────────────── */}
       <mesh position={[0, 0.76, 0]}>
         <boxGeometry args={[0.1, 0.08, 0.1]} />
-        <meshStandardMaterial color={headColor} roughness={0.6} />
+        {isEarthquake ? (
+          <meshLambertMaterial color={headColor} />
+        ) : (
+          <meshStandardMaterial color={headColor} roughness={0.6} />
+        )}
       </mesh>
 
       {/* ── Head ─────────────────────────────────────────── */}
       <mesh position={[0, 0.9, 0]} castShadow>
         <boxGeometry args={[0.26, 0.26, 0.26]} />
-        <meshStandardMaterial color={headColor} roughness={0.5} metalness={0.1} />
+        {isEarthquake ? (
+          <meshLambertMaterial color={headColor} />
+        ) : (
+          <meshStandardMaterial color={headColor} roughness={0.5} metalness={0.1} />
+        )}
       </mesh>
 
       {/* ── Helmet ───────────────────────────────────────── */}
