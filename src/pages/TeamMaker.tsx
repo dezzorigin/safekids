@@ -38,15 +38,22 @@ export default function TeamMaker() {
   // Reset saved when inputText changes
   useEffect(() => { setSaved(false) }, [inputText])
 
-  // Initialize names on mount
+  // Initialize names on mount and handle RAF cleanup
   useEffect(() => {
     setRemainingNames([])
     setInputText('')
     
     // Draw initial empty wheel
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       drawWheel(0)
     }, 100)
+    
+    return () => {
+      clearTimeout(timer)
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current)
+      }
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -247,7 +254,6 @@ export default function TeamMaker() {
       }
       
       setSaved(true)
-      console.log('✅ Groups saved to Supabase!')
       
     } catch (err: any) {
       console.error('Save error:', err)

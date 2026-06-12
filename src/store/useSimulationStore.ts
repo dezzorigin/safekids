@@ -57,22 +57,20 @@ export const LEVELS: Record<LevelId, LevelConfig> = {
     fireCoords: new Set([]), // no fire in flood
   },
   tsunami: {
-    gridSize: 12,
-    initialX: 5,
-    initialZ: 11,
-    goals: [{ x: 5, z: 1 }, { x: 1, z: 1 }],
+    gridSize: 10,
+    initialX: 1,
+    initialZ: 8,
+    goals: [{ x: 8, z: 1 }, { x: 8, z: 5 }],
     obstacles: new Set([
-      '3,9', '4,9', '6,9', '7,9', 
-      '3,6', '4,6', '5,6', '6,6', '7,6', 
-      '2,3', '8,3'
+      '3,3', '4,5', '6,3', '5,7',
     ]),
-    treeCoords: new Set([]),
+    treeCoords: new Set(['2,5', '7,3', '3,8']),
     fireCoords: new Set([]), // no fire in tsunami
   }
 }
 
 export type Facing = 0 | 90 | 180 | 270
-export type GameStatus = 'idle' | 'playing' | 'success' | 'failed'
+export type GameStatus = 'idle' | 'playing' | 'success' | 'failed' | 'partial_win'
 export type CommandType = 'forward' | 'backward' | 'left' | 'right'
 
 export interface InstructionLog {
@@ -97,6 +95,7 @@ export interface SimulationState {
 
   // ── Game state ────────────────────────────────────────────
   status: GameStatus
+  introPhase: 'sweep' | 'tutorial' | 'playing'
   steps: number
   instructions: InstructionLog[]
   commandQueue: CommandType[]
@@ -106,6 +105,10 @@ export interface SimulationState {
   inputValue: string
   isLoading: boolean
   isTrapActive: boolean
+
+  // ── Tsunami states ────────────────────────────────────────
+  tsunamiTimeLeft: number
+  tsunamiWaveActive: boolean
 
   // ── Actions ───────────────────────────────────────────────
   setLevel: (level: LevelId) => void
@@ -122,6 +125,10 @@ export interface SimulationState {
   setInputValue: (v: string) => void
   setTrapActive: (v: boolean) => void
   setLoading: (v: boolean) => void
+  setStatus: (v: GameStatus) => void
+  setIntroPhase: (v: 'sweep' | 'tutorial' | 'playing') => void
+  setTsunamiTimeLeft: (v: number | ((prev: number) => number)) => void
+  setTsunamiWaveActive: (v: boolean) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -143,8 +150,14 @@ function isBlocked(nx: number, nz: number, levelId: LevelId | null): boolean {
 function checkWinCondition(x: number, z: number, levelId: LevelId | null): GameStatus {
   if (!levelId) return 'playing'
   const config = LEVELS[levelId]
-  const reached = config.goals.some(g => g.x === x && g.z === z)
-  return reached ? 'success' : 'playing'
+  if (levelId === 'tsunami') {
+    if (x === 8 && z === 1) return 'success'
+    if (x === 8 && z === 5) return 'partial_win'
+    return 'playing'
+  } else {
+    const reached = config.goals.some(g => g.x === x && g.z === z)
+    return reached ? 'success' : 'playing'
+  }
 }
 
 // BFS shortest pathfinder
@@ -216,6 +229,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   targetZ: 0,
   isMoving: false,
   status: 'idle',
+  introPhase: 'sweep',
   steps: 0,
   instructions: [],
   commandQueue: [],
@@ -225,9 +239,18 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   isLoading: false,
   isTrapActive: false,
 
+  tsunamiTimeLeft: 75,
+  tsunamiWaveActive: false,
+
   setInputValue: (v) => set({ inputValue: v }),
   setTrapActive: (v) => set({ isTrapActive: v }),
   setLoading: (v) => set({ isLoading: v }),
+  setStatus: (v) => set({ status: v }),
+  setIntroPhase: (v) => set({ introPhase: v }),
+  setTsunamiTimeLeft: (v) => set((state) => ({
+    tsunamiTimeLeft: typeof v === 'function' ? v(state.tsunamiTimeLeft) : v
+  })),
+  setTsunamiWaveActive: (v) => set({ tsunamiWaveActive: v }),
 
   setLevel: (level: LevelId) => {
     const config = LEVELS[level]
@@ -240,16 +263,16 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       facing: 0,
       isMoving: false,
       status: 'playing',
+      introPhase: 'sweep',
       steps: 0,
       instructions: [],
       commandQueue: [],
       isLoading: true,
+      tsunamiTimeLeft: 75,
+      tsunamiWaveActive: false,
     })
     updatePath(set, get)
-
-    setTimeout(() => {
-      set({ isLoading: false })
-    }, 3000)
+    // Loading will be turned off by LevelLoadingScreen when assets are ready
   },
 
   moveForward: () => {
@@ -273,6 +296,15 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       steps: get().steps + 1,
       status: newStatus,
     })
+
+    if (currentLevel === 'tsunami') {
+      const dist1 = Math.abs(nx - 8) + Math.abs(nz - 1)
+      const dist2 = Math.abs(nx - 8) + Math.abs(nz - 5)
+      if (Math.min(dist1, dist2) <= 5) {
+        set({ tsunamiWaveActive: true })
+      }
+    }
+
     updatePath(set, get)
   },
 
@@ -294,6 +326,15 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       steps: get().steps + 1,
       status: newStatus,
     })
+
+    if (currentLevel === 'tsunami') {
+      const dist1 = Math.abs(nx - 8) + Math.abs(nz - 1)
+      const dist2 = Math.abs(nx - 8) + Math.abs(nz - 5)
+      if (Math.min(dist1, dist2) <= 5) {
+        set({ tsunamiWaveActive: true })
+      }
+    }
+
     updatePath(set, get)
   },
 
@@ -325,16 +366,16 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       facing: 0,
       isMoving: false,
       status: 'playing',
+      introPhase: 'sweep',
       steps: 0,
       instructions: [],
       commandQueue: [],
       isLoading: true,
+      tsunamiTimeLeft: 75,
+      tsunamiWaveActive: false,
     })
     updatePath(set, get)
-
-    setTimeout(() => {
-      set({ isLoading: false })
-    }, 3000)
+    // Loading will be turned off by LevelLoadingScreen when assets are ready
   },
 
   addInstruction: (log) => {

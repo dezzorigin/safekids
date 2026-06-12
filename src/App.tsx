@@ -6,6 +6,8 @@ import TeacherRoute from '@/components/layout/TeacherRoute'
 import PageTransition from '@/components/PageTransition'
 
 
+import { lazy, Suspense } from 'react'
+
 // ── Standalone pages (no sidebar) ──────────────────────────────────────────
 import WelcomePage from '@/pages/WelcomePage'
 import AdminLoginPage from '@/pages/AdminLoginPage'
@@ -13,15 +15,29 @@ import StudentLoginPage from '@/pages/StudentLoginPage'
 import StudentGroupPage from '@/pages/StudentGroupPage'
 
 // ── App pages (wrapped in MainLayout) ──────────────────────────────────────
-import AdminDashboard from '@/pages/AdminDashboard'
 import MissionBriefing from '@/pages/MissionBriefing'
 import TeamMaker from '@/pages/TeamMaker'
 import DisasterVideo from '@/pages/DisasterVideo'
-import TutorialIceBreak from '@/pages/TutorialIceBreak'
 import VocabularyLab from '@/pages/VocabularyLab'
-import Simulator from '@/pages/Simulator'
 import Evaluation from '@/pages/Evaluation'
 import ReflectionPage from '@/pages/ReflectionPage'
+
+// ── Lazy-loaded pages ──────────────────────────────────────────────────────
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'))
+const TutorialIceBreak = lazy(() => import('@/pages/TutorialIceBreak'))
+const Simulator = lazy(() => import('@/pages/Simulator'))
+
+function NeobrutalismFallback({ message }: { message: string }) {
+  return (
+    <div className="flex h-[calc(100vh-64px)] w-full items-center justify-center bg-[#FFFEF7] p-8 text-center">
+      <div className="space-y-4 border-4 border-[#1A1A2E] bg-white p-8 shadow-[6px_6px_0px_#1A1A2E] max-w-sm w-full">
+        <div className="relative mx-auto h-12 w-12 border-4 border-[#1A1A2E] border-t-[#FFE135] animate-spin" />
+        <h3 className="text-lg font-black text-[#1A1A2E] uppercase tracking-wider">{message}</h3>
+        <p className="text-xs font-bold text-gray-500">Memuat modul halaman...</p>
+      </div>
+    </div>
+  )
+}
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
@@ -44,7 +60,9 @@ export default function App() {
               element={
                 <TeacherRoute>
                   <MainLayout>
-                    <AdminDashboard />
+                    <Suspense fallback={<NeobrutalismFallback message="Dashboard Guru" />}>
+                      <AdminDashboard />
+                    </Suspense>
                   </MainLayout>
                 </TeacherRoute>
               }
@@ -82,7 +100,9 @@ export default function App() {
               path="/simulator"
               element={
                 <MainLayout>
-                  <Simulator />
+                  <Suspense fallback={<NeobrutalismFallback message="Simulator 3D" />}>
+                    <Simulator />
+                  </Suspense>
                 </MainLayout>
               }
             />
@@ -118,7 +138,9 @@ export default function App() {
               path="/tutorial"
               element={
                 <MainLayout>
-                  <TutorialIceBreak />
+                  <Suspense fallback={<NeobrutalismFallback message="Tutorial & Ice Breaking" />}>
+                    <TutorialIceBreak />
+                  </Suspense>
                 </MainLayout>
               }
             />

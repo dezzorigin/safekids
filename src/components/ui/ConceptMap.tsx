@@ -250,6 +250,11 @@ export default function ConceptMap() {
 
   // ── Physics + DOM update loop ─────────────────────────────────────
   const tick = () => {
+    if (document.hidden) {
+      rafRef.current = requestAnimationFrame(tick)
+      return
+    }
+
     if (!physicsEnabled.current) {
       rafRef.current = requestAnimationFrame(tick)
       return
