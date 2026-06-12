@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useCurtain } from '@/context/CurtainContext'
 import ConceptMap from '@/components/ui/ConceptMap'
-import MastermindsCarousel from '@/components/ui/MastermindsCarousel'
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -163,17 +162,6 @@ export default function WelcomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════
-          SECTION 4 · THE MASTERMINDS (Carousel)
-      ══════════════════════════════════════════════════════════ */}
-      <section className="bg-brutal-white border-t-4 border-brutal-black relative overflow-hidden">
-        {/* Subtle patterned background for the team section */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#1A1A2E 2px, transparent 2px)', backgroundSize: '30px 30px' }} />
-        <div className="relative z-10 max-w-6xl mx-auto">
-          <MastermindsCarousel />
         </div>
       </section>
 
