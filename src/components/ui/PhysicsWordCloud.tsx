@@ -134,6 +134,11 @@ export function PhysicsWordCloud({ words, height = '380px', emptyMessage = 'Belu
   // RAF animation loop
   useEffect(() => {
     const loop = () => {
+      if (document.hidden) {
+        rafRef.current = requestAnimationFrame(loop)
+        return
+      }
+
       const currentWords = physicsRef.current
 
       // Spring + damping

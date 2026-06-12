@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabaseClient'
 import { PhysicsWordCloud, CloudWord } from '@/components/ui/PhysicsWordCloud'
@@ -42,6 +42,16 @@ export default function ReflectionPage() {
   const [justSent, setJustSent] = useState(false)
   const [lastSentWord, setLastSentWord] = useState('')
   const [flashedWord, setFlashedWord] = useState('')
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  useEffect(() => {
+    const channel = supabase.channel('reflection-channel')
+    channel.subscribe()
+    channelRef.current = channel
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const [cloudWords, setCloudWords] = useState<CloudWord[]>(() => {
     return [...DEMO_WORDS].sort((a, b) => b.count - a.count)
@@ -51,8 +61,6 @@ export default function ReflectionPage() {
   const submitWordToCloud = useCallback((rawWord: string) => {
     const normalized = rawWord.trim().toUpperCase()
     if (!normalized) return
-
-    console.log('Reflection submitted:', { q1Text: q1, q2Word: normalized })
 
     const chosenColor = BRUTAL_COLORS[Math.floor(Math.random() * BRUTAL_COLORS.length)]
 
@@ -101,8 +109,6 @@ export default function ReflectionPage() {
 
     if (error) {
       console.error('Reflection save error:', error)
-    } else {
-      console.log('✅ Reflection saved!')
     }
 
     // Update word cloud locally
@@ -111,15 +117,17 @@ export default function ReflectionPage() {
     setJustSent(true)
     setLastSentWord(normalized)
     setTimeout(() => setJustSent(false), 1000)
-    const channel = supabase.channel('reflection-channel')
-    await channel.send({
-      type: 'broadcast',
-      event: 'word_submit',
-      payload: { 
-        word: normalized, 
-        group_number: studentGroup 
-      }
-    })
+    
+    if (channelRef.current) {
+      await channelRef.current.send({
+        type: 'broadcast',
+        event: 'word_submit',
+        payload: { 
+          word: normalized, 
+          group_number: studentGroup 
+        }
+      })
+    }
     
     // Stay on the same phase to allow multiple submissions
     // setPhase('submitted' as any)

@@ -152,7 +152,6 @@ export default function Evaluation() {
       })
 
     if (error) console.error('Quiz save error:', error)
-    else console.log('✅ Quiz result saved!')
   }
 
   const getResultBg = () => {

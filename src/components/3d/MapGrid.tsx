@@ -1,7 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import * as THREE from 'three'
 import { Text, Billboard } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useSimulationStore, LEVELS, LevelId } from '@/store/useSimulationStore'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -47,15 +47,15 @@ const LEVEL_COLORS: Record<LevelId, any> = {
     grid:        '#0d3d52',
   },
   tsunami: {
-    floor:       '#e2e8f0',
-    floorAlt:    '#cbd5e1',
+    floor:       '#E8F4FD',
+    floorAlt:    '#E8F4FD',
     obstacle:    '#64748b',
     obstacleTop: '#475569',
     goal:        '#1e293b',
     goalGlow:    '#334155',
     fire:        '#ef4444',
     fireGlow:    '#f87171',
-    grid:        '#94a3b8',
+    grid:        '#90CAF9',
   },
 }
 
@@ -574,36 +574,6 @@ function FloodTreeObstacle({ worldX, worldZ, gridX, gridZ }: {
   )
 }
 
-// ─── Standard Obstacle Tile (Flood/Tsunami) ───────────────────────────────────
-
-function ObstacleTile({ worldX, worldZ, isFire, colors }: {
-  worldX: number; worldZ: number; isFire: boolean; colors: any
-}) {
-  const height = isFire ? 1.4 : 1.0
-  const color  = isFire ? colors.fire : colors.obstacle
-
-  return (
-    <group position={[worldX, 0, worldZ]}>
-      <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[TILE_SIZE - TILE_GAP, height, TILE_SIZE - TILE_GAP]} />
-        <meshStandardMaterial
-          color={color}
-          roughness={0.6}
-          metalness={isFire ? 0.0 : 0.2}
-          emissive={isFire ? colors.fire : '#000000'}
-          emissiveIntensity={isFire ? 0.3 : 0}
-        />
-      </mesh>
-      <mesh position={[0, height + 0.04, 0]}>
-        <boxGeometry args={[TILE_SIZE - TILE_GAP + 0.06, 0.06, TILE_SIZE - TILE_GAP + 0.06]} />
-        <meshStandardMaterial color={isFire ? colors.fireGlow : colors.obstacleTop} />
-      </mesh>
-      {isFire && (
-        <pointLight color={colors.fire} intensity={1.2} distance={4} position={[0, height + 0.5, 0]} />
-      )}
-    </group>
-  )
-}
 
 // ─── Vocabulary Markers (Earthquake fixed positions) ─────────────────────────
 
@@ -1018,11 +988,11 @@ function FloodAtmosphere({ offset }: { offset: number }) {
   return (
     <>
       {/* Cool blue ambient */}
-      <ambientLight ref={ambientRef} color="#4a6fa5" intensity={0.8} />
+      <ambientLight ref={ambientRef} color="#CCE5FF" intensity={1.2} />
       {/* Steel blue directional */}
       <directionalLight
         color="#b0c4de"
-        intensity={1.2}
+        intensity={1.5}
         position={[5, 20, 5]}
         castShadow
         shadow-mapSize-width={1024}
@@ -1043,6 +1013,182 @@ function FloodAtmosphere({ offset }: { offset: number }) {
       <DarkStormClouds />
       <WaterRipples playerWorldX={playerWorldX} playerWorldZ={playerWorldZ} />
       <FloodVocabMarkers offset={offset} />
+    </>
+  )
+}
+
+
+// ─── Tsunami Wind and Rain (Drizzle and Sea Gusts) ─────────────────────────────
+const TSUNAMI_RAIN_COUNT = 120
+const WIND_WISPS_COUNT = 6
+
+interface WindWisp {
+  x: number
+  y: number
+  z: number
+  speed: number
+  length: number
+}
+
+function TsunamiWindAndRain() {
+  const rainPointsRef = useRef<THREE.Points>(null)
+  
+  // Rain particles setup
+  const { rainPositions, rainVelocities } = useMemo(() => {
+    const positions = new Float32Array(TSUNAMI_RAIN_COUNT * 3)
+    const velocities = new Float32Array(TSUNAMI_RAIN_COUNT)
+    for (let i = 0; i < TSUNAMI_RAIN_COUNT; i++) {
+      positions[i * 3]     = (Math.random() - 0.5) * 18 // x
+      positions[i * 3 + 1] = Math.random() * 12         // y
+      positions[i * 3 + 2] = 8 - Math.random() * 16     // z
+      velocities[i] = 5 + Math.random() * 4             // fall speed
+    }
+    return { rainPositions: positions, rainVelocities: velocities }
+  }, [])
+
+  // Wind streaks setup
+  const wisps = useMemo<WindWisp[]>(() => {
+    return Array.from({ length: WIND_WISPS_COUNT }, () => ({
+      x: (Math.random() - 0.5) * 12,
+      y: 0.5 + Math.random() * 2.0,
+      z: 8 - Math.random() * 16,
+      speed: 4 + Math.random() * 3,
+      length: 1.5 + Math.random() * 1.5
+    }))
+  }, [])
+
+  const wispRefs = useRef<(THREE.Mesh | null)[]>([])
+
+  useFrame((_, delta) => {
+    try {
+      // Animate Light Rain (falling down and drifting backwards along Z axis)
+      if (rainPointsRef.current) {
+        const pos = (rainPointsRef.current.geometry.attributes.position as THREE.BufferAttribute).array as Float32Array
+        for (let i = 0; i < TSUNAMI_RAIN_COUNT; i++) {
+          pos[i * 3 + 1] -= rainVelocities[i] * delta       // fall down
+          pos[i * 3 + 2] -= rainVelocities[i] * delta * 0.3 // wind drift Z
+          pos[i * 3]     -= rainVelocities[i] * delta * 0.1 // minor wind drift X
+
+          // Reset drop when below ground
+          if (pos[i * 3 + 1] < -0.2) {
+            pos[i * 3]     = (Math.random() - 0.5) * 18
+            pos[i * 3 + 1] = 12
+            pos[i * 3 + 2] = 8 - Math.random() * 16
+          }
+        }
+        (rainPointsRef.current.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true
+      }
+
+      // Animate Wind Wisps (flying from positive Z/front to negative Z/back)
+      wisps.forEach((wisp, i) => {
+        const mesh = wispRefs.current[i]
+        if (mesh) {
+          mesh.position.z -= wisp.speed * delta
+          // Reset wisp when it goes past the back edge
+          if (mesh.position.z < -8) {
+            mesh.position.z = 10
+            mesh.position.x = (Math.random() - 0.5) * 12
+            mesh.position.y = 0.5 + Math.random() * 2.0
+          }
+        }
+      })
+    } catch (e) {
+      console.error('TsunamiWindAndRain useFrame error:', e)
+    }
+  })
+
+  return (
+    <group>
+      {/* Light Storm Drizzle */}
+      <points ref={rainPointsRef}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[rainPositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          color="#90A4AE"
+          size={0.035}
+          transparent
+          opacity={0.5}
+          depthWrite={false}
+          sizeAttenuation={true}
+        />
+      </points>
+
+      {/* Blowing Sea Mist Streaks */}
+      {wisps.map((w, i) => (
+        <mesh
+          key={`wisp-${i}`}
+          ref={(el) => { wispRefs.current[i] = el }}
+          position={[w.x, w.y, w.z]}
+        >
+          <boxGeometry args={[0.02, 0.015, w.length]} />
+          <meshBasicMaterial color="#ECEFF1" transparent opacity={0.12} depthWrite={false} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// ─── Tsunami Atmosphere Scene ──────────────────────────────────────────────────
+function TsunamiAtmosphere({ gridSize }: { gridSize: number }) {
+  const { scene } = useThree()
+  const shorelineRef = useRef<THREE.Mesh>(null)
+  
+  useEffect(() => {
+    scene.fog = new THREE.Fog('#263238', 15, 45)
+    return () => { scene.fog = null }
+  }, [scene])
+
+  const groundSize = gridSize * 1.04 + 10
+  const offset = (gridSize * STEP) / 2 - STEP / 2
+  const frontZ = 10 * STEP - offset
+
+  useFrame((state) => {
+    try {
+      if (shorelineRef.current) {
+        const t = state.clock.elapsedTime
+        // Gentle wave washing back and forth at the front of the beach
+        shorelineRef.current.position.z = frontZ + Math.sin(t * 1.2) * 0.18
+        shorelineRef.current.scale.y = 1.0 + Math.sin(t * 1.2) * 0.08
+      }
+    } catch (e) {
+      console.error('TsunamiAtmosphere useFrame error:', e)
+    }
+  })
+  
+  return (
+    <>
+      <ambientLight color="#546E7A" intensity={0.8} />
+      <directionalLight
+        color="#90A4AE"
+        intensity={1.0}
+        position={[5, 20, 5]}
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-near={0.1}
+        shadow-camera-far={60}
+        shadow-camera-left={-15}
+        shadow-camera-right={15}
+        shadow-camera-top={15}
+        shadow-camera-bottom={-15}
+      />
+      <directionalLight color="#263238" intensity={0.3} position={[-5, 5, -5]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
+        <planeGeometry args={[groundSize, groundSize]} />
+        <meshStandardMaterial color="#8D7A5D" roughness={1.0} />
+      </mesh>
+      {/* Garis Pantai (di depan map, z = 10) */}
+      <mesh ref={shorelineRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, frontZ]}>
+        <planeGeometry args={[16, 2]} />
+        <meshBasicMaterial color="#3b6f82" transparent opacity={0.4} />
+      </mesh>
+
+      {/* Storm Drizzle and Sea Breeze gusts */}
+      <TsunamiWindAndRain />
     </>
   )
 }
@@ -1085,7 +1231,14 @@ function RouteMarkers() {
     if (pathIdx - lastPlacedIndex >= 2) {
       let text = ''
       if (currentLevel === 'tsunami') {
-        text = 'Go Up To Stairs'
+        const targetGoal = shortestPath[shortestPath.length - 1]
+        if (targetGoal && targetGoal.x === 8 && targetGoal.z === 1) {
+          text = 'Climb High Ground'
+        } else if (targetGoal && targetGoal.x === 8 && targetGoal.z === 5) {
+          text = 'Enter Escape Building'
+        } else {
+          text = 'Go to Safe Place'
+        }
       } else {
         text = labelIndex % 2 === 0 ? 'Between' : 'Beside'
         labelIndex++
@@ -1130,6 +1283,504 @@ const CRACKED_TILE_SEEDS: Record<string, number> = {
 // Tiles that have floating debris in flood
 const DEBRIS_TILE_SEEDS: Record<string, number> = {
   '1,9': 1, '5,7': 2, '3,8': 3, '6,4': 4, '2,3': 5, '7,5': 6,
+}
+
+// ─── Tsunami Components ────────────────────────────────────────────────────────
+
+function TsunamiBuilding({ worldX, worldZ }: { worldX: number; worldZ: number }) {
+  return (
+    <group position={[worldX, 0, worldZ]}>
+      {/* Dark Concrete Base Trim */}
+      <mesh position={[0, 0.075, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.95, 0.15, 0.95]} />
+        <meshStandardMaterial color="#37474F" roughness={0.9} />
+      </mesh>
+
+      {/* Main Building Body */}
+      <mesh position={[0, 0.9, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.85, 1.65, 0.85]} />
+        <meshStandardMaterial color="#607D8B" roughness={0.6} metalness={0.1} />
+      </mesh>
+
+      {/* Modern Flat Roof Ledge */}
+      <mesh position={[0, 1.775, 0]} castShadow>
+        <boxGeometry args={[0.95, 0.1, 0.95]} />
+        <meshStandardMaterial color="#37474F" roughness={0.8} />
+      </mesh>
+      {/* Roof Penthouse/HVAC unit */}
+      <mesh position={[0, 1.9, 0]} castShadow>
+        <boxGeometry args={[0.45, 0.18, 0.45]} />
+        <meshStandardMaterial color="#78909C" roughness={0.7} />
+      </mesh>
+
+      {/* Glowing Windows - Front Face (z = 0.43) */}
+      <mesh position={[-0.2, 1.3, 0.43]} castShadow={false}>
+        <boxGeometry args={[0.16, 0.22, 0.01]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+      <mesh position={[0.2, 1.3, 0.43]} castShadow={false}>
+        <boxGeometry args={[0.16, 0.22, 0.01]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+      <mesh position={[-0.2, 0.8, 0.43]} castShadow={false}>
+        <boxGeometry args={[0.16, 0.22, 0.01]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+      <mesh position={[0.2, 0.8, 0.43]} castShadow={false}>
+        <boxGeometry args={[0.16, 0.22, 0.01]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+      <mesh position={[-0.2, 0.3, 0.43]} castShadow={false}>
+        <boxGeometry args={[0.16, 0.22, 0.01]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+      <mesh position={[0.2, 0.3, 0.43]} castShadow={false}>
+        <boxGeometry args={[0.16, 0.22, 0.01]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+
+      {/* Glowing Windows - Side Face (x = 0.43) */}
+      <mesh position={[0.43, 1.3, 0]} castShadow={false}>
+        <boxGeometry args={[0.01, 0.22, 0.3]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+      <mesh position={[0.43, 0.7, 0]} castShadow={false}>
+        <boxGeometry args={[0.01, 0.22, 0.3]} />
+        <meshStandardMaterial color="#FFF59D" emissive="#FFE082" emissiveIntensity={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function TsunamiTree({ worldX, worldZ }: { worldX: number; worldZ: number }) {
+  const treeRef = useRef<THREE.Group>(null)
+
+  useFrame((state) => {
+    try {
+      if (treeRef.current) {
+        const t = state.clock.elapsedTime
+        // Natural swaying motion in the wind
+        const sway = Math.sin(t * 1.3 + worldX * 0.7 + worldZ * 0.3) * 0.035
+        treeRef.current.rotation.z = sway
+        treeRef.current.rotation.x = sway * 0.4
+      }
+    } catch (e) {
+      console.error('TsunamiTree useFrame error:', e)
+    }
+  })
+
+  return (
+    <group ref={treeRef} position={[worldX, 0, worldZ]}>
+      {/* Trunk */}
+      <mesh position={[0, 0.75, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.14, 1.5, 6]} />
+        <meshStandardMaterial color="#795548" roughness={0.8} />
+      </mesh>
+
+      {/* Coconuts (detailed fruit clusters) */}
+      <mesh position={[0.12, 1.28, 0.05]} castShadow>
+        <sphereGeometry args={[0.1, 6, 6]} />
+        <meshStandardMaterial color="#4E3629" roughness={0.9} />
+      </mesh>
+      <mesh position={[-0.08, 1.3, 0.1]} castShadow>
+        <sphereGeometry args={[0.09, 6, 6]} />
+        <meshStandardMaterial color="#4E3629" roughness={0.9} />
+      </mesh>
+      <mesh position={[-0.05, 1.28, -0.12]} castShadow>
+        <sphereGeometry args={[0.11, 6, 6]} />
+        <meshStandardMaterial color="#4E3629" roughness={0.9} />
+      </mesh>
+
+      {/* Layered Palm Leaves (lush and tiered) */}
+      {/* Upper Crown */}
+      <mesh position={[0, 1.55, 0]} scale={[1, 0.35, 1]} castShadow>
+        <sphereGeometry args={[0.48, 6, 6]} />
+        <meshStandardMaterial color="#2E7D32" roughness={0.7} />
+      </mesh>
+      {/* Lower Outer Fronds */}
+      <mesh position={[0, 1.42, 0]} scale={[1.4, 0.18, 1.4]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <sphereGeometry args={[0.4, 6, 6]} />
+        <meshStandardMaterial color="#1B5E20" roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function TsunamiHighGround({ worldX, worldZ }: { worldX: number; worldZ: number }) {
+  return (
+    <group position={[worldX, 0, worldZ]}>
+      {/* Tier 1 - Base (Rock/Earth) */}
+      <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2, 0.5, 2]} />
+        <meshStandardMaterial color="#4D4637" roughness={0.9} />
+      </mesh>
+      {/* Tier 1 Grass Cover */}
+      <mesh position={[0, 0.5, 0]} receiveShadow>
+        <boxGeometry args={[2.02, 0.03, 2.02]} />
+        <meshStandardMaterial color="#2E7D32" roughness={0.9} />
+      </mesh>
+
+      {/* Tier 2 - Middle (Rock/Earth) */}
+      <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 0.5, 1.5]} />
+        <meshStandardMaterial color="#61553E" roughness={0.9} />
+      </mesh>
+      {/* Tier 2 Grass Cover */}
+      <mesh position={[0, 1.0, 0]} receiveShadow>
+        <boxGeometry args={[1.52, 0.03, 1.52]} />
+        <meshStandardMaterial color="#2E7D32" roughness={0.9} />
+      </mesh>
+
+      {/* Tier 3 - Top Deck (Wood Platform) */}
+      <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1, 0.5, 1]} />
+        <meshStandardMaterial color="#8D6E63" roughness={0.8} />
+      </mesh>
+      {/* Tier 3 Wooden Floor Planks */}
+      <mesh position={[0, 1.5, 0]} receiveShadow>
+        <boxGeometry args={[1.02, 0.03, 1.02]} />
+        <meshStandardMaterial color="#3E2723" roughness={0.8} />
+      </mesh>
+
+      {/* Climbable Steps/Stairs (Front Side) */}
+      {/* Step 1 (ground to tier 1) */}
+      <mesh position={[0, 0.125, 1.0]} castShadow receiveShadow>
+        <boxGeometry args={[0.6, 0.25, 0.2]} />
+        <meshStandardMaterial color="#795548" roughness={0.85} />
+      </mesh>
+      {/* Step 2 (tier 1 step) */}
+      <mesh position={[0, 0.375, 0.8]} castShadow receiveShadow>
+        <boxGeometry args={[0.6, 0.25, 0.2]} />
+        <meshStandardMaterial color="#795548" roughness={0.85} />
+      </mesh>
+      {/* Step 3 (tier 1 to tier 2) */}
+      <mesh position={[0, 0.625, 0.6]} castShadow receiveShadow>
+        <boxGeometry args={[0.5, 0.25, 0.2]} />
+        <meshStandardMaterial color="#5D4037" roughness={0.85} />
+      </mesh>
+      {/* Step 4 (tier 2 step) */}
+      <mesh position={[0, 0.875, 0.4]} castShadow receiveShadow>
+        <boxGeometry args={[0.5, 0.25, 0.2]} />
+        <meshStandardMaterial color="#5D4037" roughness={0.85} />
+      </mesh>
+
+      {/* Flagpole & Rescue Flag */}
+      <mesh position={[0.35, 1.9, -0.35]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 0.8, 6]} />
+        <meshStandardMaterial color="#ECEFF1" roughness={0.5} />
+      </mesh>
+      <mesh position={[0.22, 2.2, -0.35]} castShadow>
+        <boxGeometry args={[0.26, 0.16, 0.01]} />
+        <meshStandardMaterial color="#EF5350" roughness={0.6} />
+      </mesh>
+
+      <Billboard position={[0, 2.6, 0]}>
+        <Text fontSize={0.25} color="#ffffff" outlineColor="#222" outlineWidth={0.03} anchorX="center" anchorY="middle">
+          {'🏔️ HIGH GROUND'}
+        </Text>
+      </Billboard>
+    </group>
+  )
+}
+
+function TsunamiShelter({ worldX, worldZ }: { worldX: number; worldZ: number }) {
+  const beaconRef = useRef<THREE.Mesh>(null)
+  const beaconLightRef = useRef<THREE.PointLight>(null)
+
+  useFrame((state) => {
+    try {
+      if (beaconRef.current) {
+        const t = state.clock.elapsedTime
+        // High-frequency beacon strobe light pulse
+        const pulse = 0.9 + Math.sin(t * 4.5) * 0.2
+        beaconRef.current.scale.setScalar(pulse)
+        if (beaconRef.current.material) {
+          (beaconRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.7 + Math.sin(t * 4.5) * 0.5
+        }
+      }
+      if (beaconLightRef.current) {
+        const t = state.clock.elapsedTime
+        beaconLightRef.current.intensity = 1.2 + Math.sin(t * 4.5) * 0.8
+      }
+    } catch (e) {
+      console.error('TsunamiShelter useFrame error:', e)
+    }
+  })
+
+  return (
+    <group position={[worldX, 0, worldZ]}>
+      {/* 1. Ground Level - Open Concrete Foundation slab */}
+      <mesh position={[0, 0.05, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.4, 0.1, 1.4]} />
+        <meshStandardMaterial color="#37474F" roughness={0.9} />
+      </mesh>
+
+      {/* 2. Reinforced Stilts/Columns (Allowing tsunami waves to flow through underneath) */}
+      {/* Front-Left Pillar */}
+      <mesh position={[-0.5, 0.65, -0.5]} castShadow receiveShadow>
+        <boxGeometry args={[0.2, 1.2, 0.2]} />
+        <meshStandardMaterial color="#546E7A" roughness={0.8} />
+      </mesh>
+      {/* Front-Right Pillar */}
+      <mesh position={[0.5, 0.65, -0.5]} castShadow receiveShadow>
+        <boxGeometry args={[0.2, 1.2, 0.2]} />
+        <meshStandardMaterial color="#546E7A" roughness={0.8} />
+      </mesh>
+      {/* Back-Left Pillar */}
+      <mesh position={[-0.5, 0.65, 0.5]} castShadow receiveShadow>
+        <boxGeometry args={[0.2, 1.2, 0.2]} />
+        <meshStandardMaterial color="#546E7A" roughness={0.8} />
+      </mesh>
+      {/* Back-Right Pillar */}
+      <mesh position={[0.5, 0.65, 0.5]} castShadow receiveShadow>
+        <boxGeometry args={[0.2, 1.2, 0.2]} />
+        <meshStandardMaterial color="#546E7A" roughness={0.8} />
+      </mesh>
+      {/* Center Main Core (Utility shaft/Elevator shaft - solid concrete) */}
+      <mesh position={[0, 0.65, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.4, 1.2, 0.4]} />
+        <meshStandardMaterial color="#455A64" roughness={0.8} />
+      </mesh>
+
+      {/* 3. Elevated Main Deck Platform (High Safe Level) */}
+      <mesh position={[0, 1.3, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 0.15, 1.5]} />
+        <meshStandardMaterial color="#37474F" roughness={0.9} />
+      </mesh>
+
+      {/* 4. Safety Guardrails around the Elevated Platform */}
+      {/* Front rail */}
+      <mesh position={[0, 1.55, -0.7]} castShadow>
+        <boxGeometry args={[1.4, 0.3, 0.05]} />
+        <meshStandardMaterial color="#FFB300" roughness={0.7} />
+      </mesh>
+      {/* Back rail */}
+      <mesh position={[0, 1.55, 0.7]} castShadow>
+        <boxGeometry args={[1.4, 0.3, 0.05]} />
+        <meshStandardMaterial color="#FFB300" roughness={0.7} />
+      </mesh>
+      {/* Left rail */}
+      <mesh position={[-0.7, 1.55, 0]} castShadow>
+        <boxGeometry args={[0.05, 0.3, 1.4]} />
+        <meshStandardMaterial color="#FFB300" roughness={0.7} />
+      </mesh>
+      {/* Right rail */}
+      <mesh position={[0.7, 1.55, 0]} castShadow>
+        <boxGeometry args={[0.05, 0.3, 1.4]} />
+        <meshStandardMaterial color="#FFB300" roughness={0.7} />
+      </mesh>
+
+      {/* 5. Upper Shelter Structure (Fortified Safe House) */}
+      <mesh position={[0, 2.1, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.1, 1.4, 1.1]} />
+        <meshStandardMaterial color="#ECEFF1" roughness={0.5} metalness={0.1} />
+      </mesh>
+      {/* Orange accent trim to highlight the safe building */}
+      <mesh position={[0, 2.85, 0]} castShadow>
+        <boxGeometry args={[1.2, 0.1, 1.2]} />
+        <meshStandardMaterial color="#FF9800" roughness={0.6} />
+      </mesh>
+
+      {/* 6. Evacuation Staircase (Visualized as concrete steps slanted on the side) */}
+      {/* Lower step wedge */}
+      <mesh position={[0.6, 0.3, 0.8]} rotation={[0.4, 0, 0]} castShadow>
+        <boxGeometry args={[0.3, 0.1, 0.8]} />
+        <meshStandardMaterial color="#78909C" roughness={0.8} />
+      </mesh>
+      {/* Upper step wedge */}
+      <mesh position={[0.6, 0.8, 0.2]} rotation={[0.4, 0, 0]} castShadow>
+        <boxGeometry args={[0.3, 0.1, 0.8]} />
+        <meshStandardMaterial color="#78909C" roughness={0.8} />
+      </mesh>
+
+      {/* 7. Cyan Glowing Evacuation Building Windows */}
+      {/* Front Face (z = 0.56) */}
+      <mesh position={[-0.25, 2.1, 0.56]} castShadow={false}>
+        <boxGeometry args={[0.18, 0.3, 0.01]} />
+        <meshStandardMaterial color="#B2EBF2" emissive="#00ACC1" emissiveIntensity={0.8} />
+      </mesh>
+      <mesh position={[0.25, 2.1, 0.56]} castShadow={false}>
+        <boxGeometry args={[0.18, 0.3, 0.01]} />
+        <meshStandardMaterial color="#B2EBF2" emissive="#00ACC1" emissiveIntensity={0.8} />
+      </mesh>
+      {/* Side Face (x = 0.56) */}
+      <mesh position={[0.56, 2.1, 0]} castShadow={false}>
+        <boxGeometry args={[0.01, 0.3, 0.4]} />
+        <meshStandardMaterial color="#B2EBF2" emissive="#00ACC1" emissiveIntensity={0.8} />
+      </mesh>
+
+      {/* 8. Safety/Rescue Logo (Green Cross) */}
+      <mesh position={[0, 2.1, 0.565]}>
+        <boxGeometry args={[0.2, 0.2, 0.005]} />
+        <meshStandardMaterial color="#4CAF50" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 2.1, 0.57]}>
+        <boxGeometry args={[0.04, 0.14, 0.002]} />
+        <meshBasicMaterial color="#FFFFFF" />
+      </mesh>
+      <mesh position={[0, 2.1, 0.57]} rotation={[0, 0, Math.PI / 2]}>
+        <boxGeometry args={[0.04, 0.14, 0.002]} />
+        <meshBasicMaterial color="#FFFFFF" />
+      </mesh>
+
+      {/* 9. Beacon Light Support Pole & Pulsing Beacon */}
+      <mesh position={[0, 3.0, 0]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 0.2, 6]} />
+        <meshStandardMaterial color="#ECEFF1" roughness={0.4} />
+      </mesh>
+      <mesh ref={beaconRef} position={[0, 3.15, 0]}>
+        <sphereGeometry args={[0.1, 8, 8]} />
+        <meshStandardMaterial color="#FF5252" emissive="#FF1744" emissiveIntensity={1.0} />
+      </mesh>
+      <pointLight ref={beaconLightRef} color="#FF1744" intensity={1.5} distance={3} position={[0, 3.3, 0]} />
+
+      {/* Billboard label */}
+      <Billboard position={[0, 3.7, 0]}>
+        <Text fontSize={0.25} color="#ffffff" outlineColor="#222" outlineWidth={0.03} anchorX="center" anchorY="middle">
+          {'🏢 ESCAPE BUILDING'}
+        </Text>
+      </Billboard>
+    </group>
+  )
+}
+
+function TsunamiWave({ offset }: { offset: number }) {
+  const waveGroupRef = useRef<THREE.Group>(null)
+  const frontMeshRef = useRef<THREE.Mesh>(null)
+  const midMeshRef = useRef<THREE.Mesh>(null)
+  const backMeshRef = useRef<THREE.Mesh>(null)
+  
+  const foamRef1 = useRef<THREE.Mesh>(null)
+  const foamRef2 = useRef<THREE.Mesh>(null)
+  const foamRef3 = useRef<THREE.Mesh>(null)
+  const foamRef4 = useRef<THREE.Mesh>(null)
+  const foamRef5 = useRef<THREE.Mesh>(null)
+
+  const setStatus = useSimulationStore(s => s.setStatus)
+  const avatarZ = useSimulationStore(s => s.z)
+  const status = useSimulationStore(s => s.status)
+  const waveActive = useSimulationStore(s => s.tsunamiWaveActive)
+
+  useEffect(() => {
+    if (waveGroupRef.current && (status === 'playing' && !waveActive)) {
+      waveGroupRef.current.position.z = 10
+    }
+  }, [status, waveActive])
+
+  useFrame((state) => {
+    try {
+      const t = state.clock.elapsedTime
+
+      // Organic liquid undulation (scale & height wobble)
+      if (frontMeshRef.current) {
+        frontMeshRef.current.scale.y = 1.0 + Math.sin(t * 2.8) * 0.04
+        frontMeshRef.current.position.y = 1.1 + Math.sin(t * 2.8) * 0.03
+      }
+      if (midMeshRef.current) {
+        midMeshRef.current.scale.y = 1.0 + Math.sin(t * 2.2 + 1.5) * 0.05
+        midMeshRef.current.position.y = 0.7 + Math.sin(t * 2.2 + 1.5) * 0.02
+      }
+      if (backMeshRef.current) {
+        backMeshRef.current.scale.y = 1.0 + Math.sin(t * 1.8 + 3.0) * 0.06
+        backMeshRef.current.position.y = 0.35 + Math.sin(t * 1.8 + 3.0) * 0.01
+      }
+      
+      const baseFrontY = frontMeshRef.current ? frontMeshRef.current.position.y : 1.1
+      const frontZEdge = -1.75
+      
+      // Animate the 5 overlapping foam crests to simulate churning turbulence
+      if (foamRef1.current) {
+        foamRef1.current.position.y = baseFrontY + Math.sin(t * 4.2) * 0.08
+        foamRef1.current.position.z = frontZEdge + Math.cos(t * 3.8) * 0.06
+        foamRef1.current.position.x = -6.5 + Math.sin(t * 1.2) * 0.15
+        foamRef1.current.scale.set(1.0 + Math.sin(t * 3.0) * 0.1, 1.0 + Math.cos(t * 3.5) * 0.1, 1.0)
+      }
+      if (foamRef2.current) {
+        foamRef2.current.position.y = baseFrontY + Math.sin(t * 3.8 + 1) * 0.07
+        foamRef2.current.position.z = frontZEdge + Math.cos(t * 4.2 + 1) * 0.05
+        foamRef2.current.position.x = -3.2 + Math.sin(t * 1.6) * 0.18
+        foamRef2.current.scale.set(1.0 + Math.sin(t * 3.4) * 0.12, 1.0 + Math.cos(t * 4.0) * 0.12, 1.0)
+      }
+      if (foamRef3.current) {
+        foamRef3.current.position.y = baseFrontY + Math.sin(t * 4.5 + 2) * 0.09
+        foamRef3.current.position.z = frontZEdge + Math.cos(t * 4.8 + 2) * 0.07
+        foamRef3.current.position.x = 0.0 + Math.sin(t * 1.4) * 0.2
+        foamRef3.current.scale.set(1.0 + Math.sin(t * 3.8) * 0.15, 1.0 + Math.cos(t * 4.5) * 0.15, 1.0)
+      }
+      if (foamRef4.current) {
+        foamRef4.current.position.y = baseFrontY + Math.sin(t * 3.5 + 3) * 0.07
+        foamRef4.current.position.z = frontZEdge + Math.cos(t * 3.5 + 3) * 0.05
+        foamRef4.current.position.x = 3.2 + Math.sin(t * 1.5) * 0.16
+        foamRef4.current.scale.set(1.0 + Math.sin(t * 3.2) * 0.1, 1.0 + Math.cos(t * 3.8) * 0.1, 1.0)
+      }
+      if (foamRef5.current) {
+        foamRef5.current.position.y = baseFrontY + Math.sin(t * 4.0 + 4) * 0.08
+        foamRef5.current.position.z = frontZEdge + Math.cos(t * 4.0 + 4) * 0.06
+        foamRef5.current.position.x = 6.5 + Math.sin(t * 1.1) * 0.14
+        foamRef5.current.scale.set(1.0 + Math.sin(t * 2.8) * 0.08, 1.0 + Math.cos(t * 3.2) * 0.08, 1.0)
+      }
+
+      if (waveGroupRef.current) {
+        // Triggered when the avatar approaches the safe zone (waveActive becomes true)
+        if (status === 'playing' && waveActive) {
+          // Slowly moves from front (Z=10) to back (negative Z)
+          waveGroupRef.current.position.z -= 0.003
+          
+          const avatarWorldZ = avatarZ * 1.04 - offset
+          // Collision check: when the leading edge (front face of group) catches up with the avatar
+          if (waveGroupRef.current.position.z <= avatarWorldZ + 1.5) {
+            setStatus('failed')
+          }
+        }
+      }
+    } catch (e) {
+      console.error('TsunamiWave error:', e)
+    }
+  })
+
+  return (
+    <group ref={waveGroupRef} position={[0, 0, 10]}>
+      {/* Front wave block */}
+      <mesh ref={frontMeshRef} position={[0, 1.1, 0]} castShadow>
+        <boxGeometry args={[16, 2.2, 3.5]} />
+        <meshStandardMaterial color="#102A43" transparent opacity={0.92} roughness={0.25} />
+      </mesh>
+      
+      {/* 5 Overlapping foam boxes making up the churning wave crest */}
+      <mesh ref={foamRef1} position={[-6.5, 1.1, -1.75]} castShadow>
+        <boxGeometry args={[3.6, 0.45, 0.8]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={1.0} transparent opacity={0.96} />
+      </mesh>
+      <mesh ref={foamRef2} position={[-3.2, 1.1, -1.75]} castShadow>
+        <boxGeometry args={[3.6, 0.5, 0.9]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={1.0} transparent opacity={0.96} />
+      </mesh>
+      <mesh ref={foamRef3} position={[0, 1.1, -1.75]} castShadow>
+        <boxGeometry args={[3.6, 0.45, 0.8]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={1.0} transparent opacity={0.96} />
+      </mesh>
+      <mesh ref={foamRef4} position={[3.2, 1.1, -1.75]} castShadow>
+        <boxGeometry args={[3.6, 0.5, 0.9]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={1.0} transparent opacity={0.96} />
+      </mesh>
+      <mesh ref={foamRef5} position={[6.5, 1.1, -1.75]} castShadow>
+        <boxGeometry args={[3.6, 0.45, 0.8]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={1.0} transparent opacity={0.96} />
+      </mesh>
+
+      {/* Mid wave block */}
+      <mesh ref={midMeshRef} position={[0, 0.7, 3.5]} castShadow>
+        <boxGeometry args={[16, 1.4, 5.0]} />
+        <meshStandardMaterial color="#243B53" transparent opacity={0.82} roughness={0.3} />
+      </mesh>
+
+      {/* Back wave block */}
+      <mesh ref={backMeshRef} position={[0, 0.35, 8]} castShadow>
+        <boxGeometry args={[16, 0.7, 8]} />
+        <meshStandardMaterial color="#334E68" transparent opacity={0.65} roughness={0.4} />
+      </mesh>
+    </group>
+  )
 }
 
 export default function MapGrid() {
@@ -1192,19 +1843,7 @@ export default function MapGrid() {
         </>
       )}
 
-      {/* ── Non-earthquake ambient (tsunami) ── */}
-      {!isEarthquake && !isFlood && (
-        <>
-          <ambientLight intensity={0.7} />
-          <directionalLight castShadow position={[5, 10, 5]} intensity={1.2}
-            shadow-mapSize-width={1024} shadow-mapSize-height={1024}
-            shadow-camera-near={0.1} shadow-camera-far={50}
-            shadow-camera-left={-15} shadow-camera-right={15}
-            shadow-camera-top={15} shadow-camera-bottom={-15}
-          />
-          <directionalLight position={[-5, 5, -5]} intensity={0.6} />
-        </>
-      )}
+      {/* Lighting moved to TsunamiAtmosphere */}
 
       {/* ── Base Ground Plane ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
@@ -1216,7 +1855,7 @@ export default function MapGrid() {
       {isFlood && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 0]}>
           <planeGeometry args={[config.gridSize * STEP + 0.3, config.gridSize * STEP + 0.3]} />
-          <meshPhongMaterial color="#0d3d52" shininess={80} specular={new THREE.Color('#1a6b8a')} transparent opacity={0.95} />
+          <meshPhongMaterial color="#74C0FC" shininess={80} specular={new THREE.Color('#1a6b8a')} transparent opacity={0.25} />
         </mesh>
       )}
 
@@ -1284,11 +1923,17 @@ export default function MapGrid() {
         // ── Non-earthquake, non-flood (Tsunami) ──
         switch (tile.type) {
           case 'goal':
+            if (tile.x === 8 && tile.z === 1) {
+              return <TsunamiHighGround key={key} worldX={tile.worldX} worldZ={tile.worldZ} />
+            }
+            if (tile.x === 8 && tile.z === 5) {
+              return <TsunamiShelter key={key} worldX={tile.worldX} worldZ={tile.worldZ} />
+            }
             return <GoalTile key={key} worldX={tile.worldX} worldZ={tile.worldZ} colors={colors} />
           case 'obstacle':
-            return <ObstacleTile key={key} worldX={tile.worldX} worldZ={tile.worldZ} isFire={false} colors={colors} />
-          case 'fire':
-            return <ObstacleTile key={key} worldX={tile.worldX} worldZ={tile.worldZ} isFire={true} colors={colors} />
+            return <TsunamiBuilding key={key} worldX={tile.worldX} worldZ={tile.worldZ} />
+          case 'tree':
+            return <TsunamiTree key={key} worldX={tile.worldX} worldZ={tile.worldZ} />
           default:
             return <FloorTile key={key} worldX={tile.worldX} worldZ={tile.worldZ} isAlt={isAlt} colors={colors} />
         }
@@ -1316,6 +1961,12 @@ export default function MapGrid() {
 
       {/* ── Flood-specific atmosphere ── */}
       {isFlood && <FloodAtmosphere offset={offset} />}
+      {!isEarthquake && !isFlood && (
+        <>
+          <TsunamiAtmosphere gridSize={config.gridSize} />
+          <TsunamiWave offset={offset} />
+        </>
+      )}
 
       {/* ── Route markers (tsunami only) ── */}
       <RouteMarkers />

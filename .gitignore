@@ -1,3 +1,14 @@
 node_modules
+
+# local env files
+.env
 .env.local
-dist/
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# production build outputs
+dist
+dist-ssr
+build

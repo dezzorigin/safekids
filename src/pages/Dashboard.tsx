@@ -93,16 +93,13 @@ export default function Dashboard() {
         'broadcast',
         { event: 'simulation_update' },
         (payload) => {
-          console.log('Broadcast payload received:', payload)
           const newData = payload.payload as TrackingData
           if (newData && newData.group_id) {
             setTrackingData((prev) => ({ ...prev, [newData.group_id]: newData }))
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Supabase broadcast subscription status:', status)
-      })
+      .subscribe()
 
     return () => {
       supabase.removeChannel(channel)

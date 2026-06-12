@@ -51,15 +51,15 @@ export default function MainLayout({ children }: MainLayoutProps) {
         }
       })
 
-      channel.on('presence', { event: 'sync' }, () => {
-        // Just keeping sync active
-      })
-
-      channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED' && isSubscribed) {
-          setIsChannelReady(true)
-        }
-      })
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          // Just keeping sync active
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED' && isSubscribed) {
+            setIsChannelReady(true)
+          }
+        })
 
       channelRef.current = channel
     }

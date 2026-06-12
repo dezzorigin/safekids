@@ -41,7 +41,7 @@ export default function DisasterVideo() {
         {/* Click wrapper */}
         <div 
           onClick={() => setExpandedVideo({
-            embedUrl: 'https://www.youtube.com/embed/cW3GVNRfDiI?start=490&end=550&rel=0&modestbranding=1',
+            embedUrl: 'https://www.youtube.com/embed/cW3GVNRfDiI?start=490&end=550&vq=hd1080&hd=1&rel=0&modestbranding=1',
             title: 'Kepanikan Tsunami Aceh 2004',
             tagColor: '#FF6B6B',
             tag: 'TSUNAMI · BANDA ACEH · 2004'
@@ -54,7 +54,7 @@ export default function DisasterVideo() {
             style={{ paddingTop: '56.25%' }}
           >
             <iframe
-              src="https://www.youtube.com/embed/cW3GVNRfDiI?start=490&end=550&autoplay=0&rel=0&modestbranding=1"
+              src="https://www.youtube.com/embed/cW3GVNRfDiI?start=490&end=550&autoplay=0&vq=hd1080&hd=1&rel=0&modestbranding=1"
               title="Kepanikan Tsunami Aceh 2004"
               className="absolute top-0 left-0 w-full h-full"
               style={{ border: 'none' }}
@@ -118,7 +118,7 @@ export default function DisasterVideo() {
         {/* Click wrapper */}
         <div 
           onClick={() => setExpandedVideo({
-            embedUrl: 'https://www.youtube.com/embed/uzyqEcDJRc4?start=62&end=330&rel=0&modestbranding=1',
+            embedUrl: 'https://www.youtube.com/embed/uzyqEcDJRc4?start=62&end=330&vq=hd1080&hd=1&rel=0&modestbranding=1',
             title: 'Evakuasi Terstruktur — Latihan Bencana Jepang',
             tagColor: '#4ECDC4',
             tag: 'EVACUATION DRILL · JAPAN'
@@ -131,7 +131,7 @@ export default function DisasterVideo() {
             style={{ paddingTop: '56.25%' }}
           >
             <iframe
-              src="https://www.youtube.com/embed/uzyqEcDJRc4?start=62&end=330&autoplay=0&rel=0&modestbranding=1"
+              src="https://www.youtube.com/embed/uzyqEcDJRc4?start=62&end=330&autoplay=0&vq=hd1080&hd=1&rel=0&modestbranding=1"
               title="Evakuasi Terstruktur — Latihan Bencana Jepang"
               className="absolute top-0 left-0 w-full h-full"
               style={{ border: 'none' }}

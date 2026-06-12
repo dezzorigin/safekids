@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
+import { Suspense, useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrthographicCamera, PerspectiveCamera, OrbitControls } from '@react-three/drei'
@@ -7,7 +7,9 @@ import MapGrid from '@/components/3d/MapGrid'
 import Avatar from '@/components/3d/Avatar'
 import InstructionPanel from '@/components/ui/InstructionPanel'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import LevelLoadingScreen from '@/components/ui/LevelLoadingScreen'
 import { useSimulationStore } from '@/store/useSimulationStore'
+import type { LevelId, GameStatus } from '@/store/useSimulationStore'
 import { supabase } from '@/lib/supabaseClient'
 
 // ─── Vocabulary Data ──────────────────────────────────────────────────────────
@@ -22,16 +24,77 @@ const VOCABULARY_WORDS = [
   { word: 'Roll Over', emoji: '🔄',  correct: false },
 ]
 
-function speakWord(word: string) {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(word)
-    u.lang = 'en-US'
-    const voices = window.speechSynthesis.getVoices()
-    const enVoice = voices.find(v => v.lang.startsWith('en') || v.lang.includes('US'))
-    if (enVoice) u.voice = enVoice
-    window.speechSynthesis.speak(u)
+const playGoogleTTSFallback = (word: string) => {
+  try {
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(word)}`
+    const audio = new Audio(url)
+    audio.play().catch(e => {
+      console.error('Failed to play fallback Google TTS audio:', e)
+    })
+  } catch (err) {
+    console.error('Failed to initialize fallback Audio:', err)
   }
+}
+
+const speakWord = (word: string) => {
+  if (typeof window === 'undefined') return
+
+  // Jika speechSynthesis tidak didukung/di-disable oleh OS, langsung fallback ke Google TTS
+  if (!window.speechSynthesis) {
+    playGoogleTTSFallback(word)
+    return
+  }
+
+  try {
+    window.speechSynthesis.cancel()
+  } catch (_) {}
+
+  // Gunakan setTimeout agar browser memproses pembatalan sebelum mengucapkan yang baru
+  setTimeout(() => {
+    try {
+      const utterance = new SpeechSynthesisUtterance(word)
+      utterance.lang = 'en-US'
+      utterance.rate = 0.85     // Sedikit lebih lambat biar jelas untuk anak SD
+      utterance.pitch = 1.1     // Sedikit lebih tinggi, lebih ramah anak
+      utterance.volume = 1.0
+
+      // Dapatkan daftar voice yang tersedia di browser
+      const voices = window.speechSynthesis.getVoices()
+      // Prioritaskan voice ber-bahasa Inggris
+      const enVoice = voices.find(v => v.lang.startsWith('en') || v.lang.includes('US'))
+      if (enVoice) {
+        utterance.voice = enVoice
+      }
+
+      let spoken = false
+      utterance.onstart = () => {
+        spoken = true
+      }
+
+      // Jika dalam 250ms suara tidak juga berbunyi (misal crash/stuck), fallback ke Google TTS
+      const timeoutId = setTimeout(() => {
+        if (!spoken) {
+          console.warn("SpeechSynthesis stuck or didn't start. Falling back to Google TTS.")
+          playGoogleTTSFallback(word)
+        }
+      }, 250)
+
+      utterance.onerror = (e) => {
+        clearTimeout(timeoutId)
+        console.warn('SpeechSynthesis error, falling back to Google TTS:', e)
+        playGoogleTTSFallback(word)
+      }
+
+      utterance.onend = () => {
+        clearTimeout(timeoutId)
+      }
+
+      window.speechSynthesis.speak(utterance)
+    } catch (err) {
+      console.warn('SpeechSynthesis failed, falling back to Google TTS:', err)
+      playGoogleTTSFallback(word)
+    }
+  }, 100)
 }
 
 function playBuzzSound() {
@@ -133,17 +196,30 @@ function CameraShaker({ shakeState }: { shakeState: React.MutableRefObject<Shake
 
 function EarthquakeLoadingScreen() {
   const [progress, setProgress] = useState(0)
+  const setLoading = useSimulationStore((s) => s.setLoading)
 
   useEffect(() => {
     const start = Date.now()
     const duration = 3000
+    let rafId: number
     const raf = () => {
       const elapsed = Date.now() - start
       setProgress(Math.min(100, (elapsed / duration) * 100))
-      if (elapsed < duration) requestAnimationFrame(raf)
+      if (elapsed < duration) {
+        rafId = requestAnimationFrame(raf)
+      }
     }
-    requestAnimationFrame(raf)
-  }, [])
+    rafId = requestAnimationFrame(raf)
+
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 3500)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(timer)
+    }
+  }, [setLoading])
 
   return (
     <div style={{
@@ -274,17 +350,30 @@ function EarthquakeLoadingScreen() {
 
 function FloodLoadingScreen() {
   const [progress, setProgress] = useState(0)
+  const setLoading = useSimulationStore((s) => s.setLoading)
 
   useEffect(() => {
     const start = Date.now()
     const duration = 3000
+    let rafId: number
     const raf = () => {
       const elapsed = Date.now() - start
       setProgress(Math.min(100, (elapsed / duration) * 100))
-      if (elapsed < duration) requestAnimationFrame(raf)
+      if (elapsed < duration) {
+        rafId = requestAnimationFrame(raf)
+      }
     }
-    requestAnimationFrame(raf)
-  }, [])
+    rafId = requestAnimationFrame(raf)
+
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 3500)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(timer)
+    }
+  }, [setLoading])
 
   return (
     <div style={{
@@ -416,7 +505,6 @@ function FloodLoadingScreen() {
 
 function EarthquakeVocabHUD() {
   const setInputValue = useSimulationStore((s) => s.setInputValue)
-  const [flashWord, setFlashWord] = useState<string | null>(null)
   const [redFlashCount, setRedFlashCount] = useState(0)
 
   const triggerRedFlash = useCallback(() => {
@@ -431,14 +519,21 @@ function EarthquakeVocabHUD() {
 
   const handleWordClick = useCallback((item: typeof VOCABULARY_WORDS[0]) => {
     setInputValue(item.word)
-    if (item.correct) {
-      speakWord(item.word)
-      setFlashWord(item.word)
-      setTimeout(() => setFlashWord(null), 600)
-    } else {
+    if (!item.correct) {
       triggerRedFlash()
     }
   }, [setInputValue, triggerRedFlash])
+
+  const shuffledWords = useMemo(() => {
+    return [...VOCABULARY_WORDS].sort(() => Math.random() - 0.5)
+  }, [])
+
+  const randomOffsets = useMemo(() => 
+    shuffledWords.map(() => ({
+      marginTop: Math.random() * 8 - 4,
+      marginLeft: Math.random() * 6 - 3,
+    }))
+  , [shuffledWords])
 
   const isRedFlashing = redFlashCount % 2 === 1 && redFlashCount > 0
 
@@ -486,65 +581,42 @@ function EarthquakeVocabHUD() {
             ENGLISH VOCABULARY 📖
           </span>
 
-          {VOCABULARY_WORDS.map((item) => {
-            const isFlashing = flashWord === item.word
-
+          {shuffledWords.map((item, i) => {
             const baseStyle: React.CSSProperties = {
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '6px 12px',
-              borderRadius: '10px',
-              border: '2px solid',
-              fontSize: '13px',
-              fontWeight: 700,
-              letterSpacing: '0.5px',
-              cursor: 'pointer',
-              transition: 'all 0.18s cubic-bezier(0.34,1.56,0.64,1)',
-              userSelect: 'none',
-              color: '#fff',
-            }
-
-            const correctStyle: React.CSSProperties = {
-              ...baseStyle,
-              background: isFlashing
-                ? 'linear-gradient(135deg, #16a34a, #22c55e)'
-                : 'linear-gradient(135deg, #1e3a5f, #2d6a9f)',
-              borderColor: isFlashing ? '#22c55e' : '#4a9eff',
-              boxShadow: isFlashing
-                ? '0 0 14px rgba(34,197,94,0.8)'
-                : '0 2px 8px rgba(74,158,255,0.2)',
-              animation: 'vocabPulse 2.5s ease-in-out infinite',
-            }
-
-            const wrongStyle: React.CSSProperties = {
-              ...baseStyle,
-              background: 'linear-gradient(135deg, #5f1e1e, #9f2d2d)',
-              borderColor: '#ff4a4a',
-              boxShadow: '0 2px 8px rgba(255,74,74,0.2)',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '6px 12px', borderRadius: '10px',
+              border: '4px solid #1A1A2E',
+              fontSize: '13px', fontWeight: 700, letterSpacing: '0.5px',
+              cursor: 'pointer', userSelect: 'none',
+              background: '#FFE135', color: '#1A1A2E',
+              boxShadow: '4px 4px 0px #1A1A2E',
+              transition: 'all 0.1s',
             }
 
             return (
               <button
                 key={item.word}
-                style={item.correct ? correctStyle : wrongStyle}
-                onClick={() => handleWordClick(item)}
+                style={{
+                  ...baseStyle,
+                  marginTop: randomOffsets[i].marginTop,
+                  marginLeft: randomOffsets[i].marginLeft,
+                }}
+                onClick={() => {
+                  speakWord(item.word)
+                  handleWordClick(item)
+                }}
                 onMouseEnter={e => {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.transform = 'scale(1.08)'
-                  el.style.boxShadow = item.correct
-                    ? '0 0 16px rgba(74,158,255,0.6)'
-                    : '0 0 16px rgba(255,74,74,0.6)'
+                  el.style.transform = 'translate(-2px, -2px)'
+                  el.style.boxShadow = '6px 6px 0px #1A1A2E'
                 }}
                 onMouseLeave={e => {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.transform = 'scale(1)'
-                  el.style.boxShadow = item.correct
-                    ? (isFlashing ? '0 0 14px rgba(34,197,94,0.8)' : '0 2px 8px rgba(74,158,255,0.2)')
-                    : '0 2px 8px rgba(255,74,74,0.2)'
+                  el.style.transform = 'translate(0, 0)'
+                  el.style.boxShadow = '4px 4px 0px #1A1A2E'
                 }}
+                className="active:translate-x-[4px] active:translate-y-[4px] active:shadow-none pointer-events-auto"
               >
-                <span style={{ fontSize: '11px' }}>{item.correct ? '✅' : '❌'}</span>
                 <span>{item.emoji}</span>
                 <span>{item.word}</span>
               </button>
@@ -566,26 +638,42 @@ function EarthquakeVocabHUD() {
 // ─── Standard Vocabulary HUD (Tsunami only) ──────────────────────────────────
 
 const STD_VOCAB_WORDS = [
-  { word: 'Forward',   emoji: '➡️', bg: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border-emerald-400' },
-  { word: 'Backward',  emoji: '⬅️', bg: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border-emerald-400' },
-  { word: 'Turn Right',emoji: '↪️', bg: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border-emerald-400' },
-  { word: 'Turn Left', emoji: '↩️', bg: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border-emerald-400' },
-  { word: 'Fly',       emoji: '🕊️', bg: 'bg-rose-100 hover:bg-rose-200 text-rose-950 border-rose-400' },
-  { word: 'Jump in',   emoji: '🕳️', bg: 'bg-rose-100 hover:bg-rose-200 text-rose-950 border-rose-400' },
-  { word: 'Roll Over', emoji: '🔄', bg: 'bg-rose-100 hover:bg-rose-200 text-rose-950 border-rose-400' },
+  { word: 'Forward',   emoji: '➡️', bg: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-400' },
+  { word: 'Backward',  emoji: '⬅️', bg: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-400' },
+  { word: 'Turn Right',emoji: '↪️', bg: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-400' },
+  { word: 'Turn Left', emoji: '↩️', bg: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-400' },
+  { word: 'Fly',       emoji: '🕊️', bg: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-400' },
+  { word: 'Jump in',   emoji: '🕳️', bg: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-400' },
+  { word: 'Roll Over', emoji: '🔄', bg: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-400' },
 ]
 
 function StandardVocabHUD() {
   const setInputValue = useSimulationStore((s) => s.setInputValue)
+
+  const shuffledWords = useMemo(() => {
+    return [...STD_VOCAB_WORDS].sort(() => Math.random() - 0.5)
+  }, [])
+
+  const randomOffsets = useMemo(() => 
+    shuffledWords.map(() => ({
+      marginTop: Math.random() * 8 - 4,
+      marginLeft: Math.random() * 6 - 3,
+    }))
+  , [shuffledWords])
+
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
       <div className="flex items-center gap-2 rounded-xl border-4 border-black bg-white p-2.5 shadow-brutal flex-wrap justify-center max-w-[95vw] md:max-w-none">
         <span className="text-xs font-black text-black bg-yellow-200 px-2 py-1 rounded border-2 border-black mr-1 shadow-brutal-sm">
           ENGLISH VOCABULARY 📖
         </span>
-        {STD_VOCAB_WORDS.map((item) => (
+        {shuffledWords.map((item, i) => (
           <button
             key={item.word}
+            style={{
+              marginTop: randomOffsets[i].marginTop,
+              marginLeft: randomOffsets[i].marginLeft,
+            }}
             onClick={() => { speakWord(item.word); setInputValue(item.word) }}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border-2 border-black text-xs font-black shadow-brutal-sm transition-all duration-100 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none hover:-translate-y-[1px] ${item.bg}`}
           >
@@ -594,6 +682,57 @@ function StandardVocabHUD() {
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ─── Tsunami Timer HUD ──────────────────────────────────────────────────────────
+
+function TsunamiTimerHUD() {
+  const timeLeft = useSimulationStore(s => s.tsunamiTimeLeft)
+  const setTimeLeft = useSimulationStore(s => s.setTsunamiTimeLeft)
+  const status = useSimulationStore(s => s.status)
+  const waveActive = useSimulationStore(s => s.tsunamiWaveActive)
+
+  useEffect(() => {
+    if (status !== 'playing' || timeLeft <= 0) return
+    const interval = setInterval(() => {
+      setTimeLeft(prev => Math.max(0, prev - 1))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [status, timeLeft, setTimeLeft])
+
+  const mins = Math.floor(timeLeft / 60)
+  const secs = Math.floor(timeLeft % 60)
+  const formattedTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+
+  let bg = '#fbbf24'
+  let text = `🌊 SIAGA TSUNAMI (${formattedTime})`
+
+  if (waveActive) {
+    bg = '#ef4444'
+    text = '🚨 TSUNAMI MENDEKAT! LARI!'
+  }
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: '5rem',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 20,
+      background: bg,
+      border: '3px solid #1A1A2E',
+      borderRadius: '12px',
+      padding: '8px 16px',
+      boxShadow: '4px 4px 0px #1A1A2E',
+      color: '#fff',
+      fontWeight: 900,
+      fontSize: '1.2rem',
+      textAlign: 'center',
+      pointerEvents: 'none'
+    }}>
+      {text}
     </div>
   )
 }
@@ -612,7 +751,6 @@ const FLOOD_VOCABULARY_WORDS = [
 
 function FloodVocabHUD() {
   const setInputValue = useSimulationStore((s) => s.setInputValue)
-  const [flashWord, setFlashWord] = useState<string | null>(null)
   const [redFlashCount, setRedFlashCount] = useState(0)
 
   const triggerRedFlash = useCallback(() => {
@@ -627,14 +765,21 @@ function FloodVocabHUD() {
 
   const handleWordClick = useCallback((item: typeof FLOOD_VOCABULARY_WORDS[0]) => {
     setInputValue(item.word)
-    if (item.correct) {
-      speakWord(item.word)
-      setFlashWord(item.word)
-      setTimeout(() => setFlashWord(null), 600)
-    } else {
+    if (!item.correct) {
       triggerRedFlash()
     }
   }, [setInputValue, triggerRedFlash])
+
+  const shuffledWords = useMemo(() => {
+    return [...FLOOD_VOCABULARY_WORDS].sort(() => Math.random() - 0.5)
+  }, [])
+
+  const randomOffsets = useMemo(() => 
+    shuffledWords.map(() => ({
+      marginTop: Math.random() * 8 - 4,
+      marginLeft: Math.random() * 6 - 3,
+    }))
+  , [shuffledWords])
 
   const isRedFlashing = redFlashCount % 2 === 1 && redFlashCount > 0
 
@@ -665,48 +810,42 @@ function FloodVocabHUD() {
           }}>
             ENGLISH VOCABULARY 💧
           </span>
-          {FLOOD_VOCABULARY_WORDS.map((item) => {
-            const isFlashing = flashWord === item.word
+          {shuffledWords.map((item, i) => {
             const baseStyle: React.CSSProperties = {
               display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '6px 12px', borderRadius: '10px', border: '2px solid',
+              padding: '6px 12px', borderRadius: '10px',
+              border: '4px solid #1A1A2E',
               fontSize: '13px', fontWeight: 700, letterSpacing: '0.5px',
-              cursor: 'pointer', userSelect: 'none', color: '#fff',
-              transition: 'all 0.18s cubic-bezier(0.34,1.56,0.64,1)',
+              cursor: 'pointer', userSelect: 'none',
+              background: '#FFE135', color: '#1A1A2E',
+              boxShadow: '4px 4px 0px #1A1A2E',
+              transition: 'all 0.1s',
             }
-            const correctStyle: React.CSSProperties = {
-              ...baseStyle,
-              background: isFlashing
-                ? 'linear-gradient(135deg, #16a34a, #22c55e)'
-                : 'linear-gradient(135deg, #0f3460, #1e5f7a)',
-              borderColor: isFlashing ? '#22c55e' : '#4fc3f7',
-              boxShadow: isFlashing ? '0 0 14px rgba(34,197,94,0.8)' : '0 2px 8px rgba(79,195,247,0.25)',
-            }
-            const wrongStyle: React.CSSProperties = {
-              ...baseStyle,
-              background: 'linear-gradient(135deg, #5f1e1e, #9f2d2d)',
-              borderColor: '#ff4a4a',
-              boxShadow: '0 2px 8px rgba(255,74,74,0.2)',
-            }
+
             return (
               <button
                 key={item.word}
-                style={item.correct ? correctStyle : wrongStyle}
-                onClick={() => handleWordClick(item)}
+                style={{
+                  ...baseStyle,
+                  marginTop: randomOffsets[i].marginTop,
+                  marginLeft: randomOffsets[i].marginLeft,
+                }}
+                onClick={() => {
+                  speakWord(item.word)
+                  handleWordClick(item)
+                }}
                 onMouseEnter={e => {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.transform = 'scale(1.08)'
-                  el.style.boxShadow = item.correct ? '0 0 16px rgba(79,195,247,0.7)' : '0 0 16px rgba(255,74,74,0.6)'
+                  el.style.transform = 'translate(-2px, -2px)'
+                  el.style.boxShadow = '6px 6px 0px #1A1A2E'
                 }}
                 onMouseLeave={e => {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.transform = 'scale(1)'
-                  el.style.boxShadow = item.correct
-                    ? (isFlashing ? '0 0 14px rgba(34,197,94,0.8)' : '0 2px 8px rgba(79,195,247,0.25)')
-                    : '0 2px 8px rgba(255,74,74,0.2)'
+                  el.style.transform = 'translate(0, 0)'
+                  el.style.boxShadow = '4px 4px 0px #1A1A2E'
                 }}
+                className="active:translate-x-[4px] active:translate-y-[4px] active:shadow-none pointer-events-auto"
               >
-                <span style={{ fontSize: '11px' }}>{item.correct ? '✅' : '❌'}</span>
                 <span>{item.emoji}</span>
                 <span>{item.word}</span>
               </button>
@@ -718,42 +857,78 @@ function FloodVocabHUD() {
   )
 }
 
-// ─── Flood Win Modal ──────────────────────────────────────────────────────────
+// ─── Unified Game Win Modal ──────────────────────────────────────────────────
 
-const FLOOD_OPTIMAL_STEPS = 14
-
-function FloodWinModal({ steps, onRetry, onMenu }: {
+interface GameWinModalProps {
+  level: LevelId
+  status: GameStatus
   steps: number
   onRetry: () => void
   onMenu: () => void
-}) {
-  const efficiency = Math.max(0, Math.round((FLOOD_OPTIMAL_STEPS / Math.max(steps, FLOOD_OPTIMAL_STEPS)) * 100))
+}
+
+function GameWinModal({ level, status, steps, onRetry, onMenu }: GameWinModalProps) {
+  let optimalSteps = 10
+  let emoji = '🏆'
+  let title = 'EVAKUASI BERHASIL!'
+  let description = ''
+  let themeColor = '#22c55e' // Green
+
+  if (level === 'earthquake') {
+    optimalSteps = 16
+    emoji = '🏠'
+    title = 'EVAKUASI GEMPA BERHASIL!'
+    description = 'Kamu berhasil keluar ke titik kumpul aman!'
+    themeColor = '#FFE135' // Yellow
+  } else if (level === 'flood') {
+    optimalSteps = 14
+    emoji = '🏔️'
+    title = 'EVAKUASI BANJIR BERHASIL!'
+    description = 'Kamu berhasil mencapai dataran tinggi yang aman!'
+    themeColor = '#4fc3f7' // Cyan
+  } else if (level === 'tsunami') {
+    if (status === 'success') {
+      optimalSteps = 14
+      emoji = '🏔️'
+      title = 'DATARAN TINGGI DICAPAI! 🏔️'
+      description = 'Luar biasa! Kamu berhasil mengevakuasi diri ke Dataran Tinggi (High Ground) yang sepenuhnya aman dari gelombang tsunami!'
+      themeColor = '#22c55e' // Green
+    } else {
+      optimalSteps = 10
+      emoji = '🏢'
+      title = 'GEDUNG PENYELAMATAN DICAPAI! 🏢'
+      description = 'Kerja bagus! Kamu berhasil mengevakuasi diri ke Escape Building (Vertical Shelter) tepat waktu.'
+      themeColor = '#FF9A3C' // Orange
+    }
+  }
+
+  const efficiency = Math.max(0, Math.round((optimalSteps / Math.max(steps, optimalSteps)) * 100))
 
   return (
     <div style={{
       position: 'absolute', inset: 0, zIndex: 60,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(10, 22, 40, 0.85)', backdropFilter: 'blur(6px)',
-      animation: 'floodWinFadeIn 0.5s ease-out',
+      animation: 'winFadeIn 0.5s ease-out',
     }}>
       <div style={{
-        background: 'linear-gradient(160deg, #0a1628 0%, #1a3a5c 100%)',
-        border: '3px solid #4fc3f7', borderRadius: '24px',
-        padding: '2.5rem 2rem', maxWidth: '420px', width: '90vw',
+        background: 'linear-gradient(160deg, #101726 0%, #1A2333 100%)',
+        border: `3px solid ${themeColor}`, borderRadius: '24px',
+        padding: '2.5rem 2rem', maxWidth: '440px', width: '90vw',
         textAlign: 'center',
-        boxShadow: '0 0 80px rgba(79,195,247,0.35), 0 20px 60px rgba(0,0,0,0.5)',
+        boxShadow: `0 0 80px ${themeColor}30, 0 20px 60px rgba(0,0,0,0.5)`,
       }}>
-        <div style={{ fontSize: '4rem', marginBottom: '0.75rem', animation: 'floodWaveBobLoad 2s ease-in-out infinite' }}>
-          🏔️
+        <div style={{ fontSize: '4.5rem', marginBottom: '0.75rem', animation: 'winBob 2s ease-in-out infinite' }}>
+          {emoji}
         </div>
         <h2 style={{
           color: '#ffffff', fontWeight: 900, fontSize: '1.6rem', marginBottom: '0.4rem',
-          textShadow: '0 0 20px rgba(79,195,247,0.8)',
+          textShadow: `0 0 20px ${themeColor}80`,
         }}>
-          SELAMAT! 🏆
+          {title}
         </h2>
-        <p style={{ color: 'rgba(179,229,252,0.9)', fontSize: '0.95rem', fontWeight: 600, marginBottom: '1.5rem' }}>
-          Kamu berhasil mencapai dataran tinggi!
+        <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '1.5rem', lineHeight: '1.5' }}>
+          {description}
         </p>
 
         <div style={{
@@ -761,7 +936,7 @@ function FloodWinModal({ steps, onRetry, onMenu }: {
         }}>
           {[
             { label: 'Langkah Kamu', value: steps, color: '#4fc3f7' },
-            { label: 'Optimal', value: FLOOD_OPTIMAL_STEPS, color: '#22c55e' },
+            { label: 'Optimal', value: optimalSteps, color: '#22c55e' },
             { label: 'Efisiensi', value: `${efficiency}%`, color: efficiency >= 100 ? '#fbbf24' : efficiency >= 70 ? '#4ade80' : '#f87171' },
           ].map(s => (
             <div key={s.label} style={{
@@ -780,10 +955,10 @@ function FloodWinModal({ steps, onRetry, onMenu }: {
           <button
             onClick={onRetry}
             style={{
-              background: 'linear-gradient(135deg, #1e5f7a, #4fc3f7)', color: '#fff',
+              background: `linear-gradient(135deg, ${themeColor}dd, ${themeColor})`, color: '#fff',
               border: 'none', borderRadius: '12px', padding: '12px 24px',
               fontWeight: 900, fontSize: '14px', cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(79,195,247,0.4)', transition: 'all 0.2s', letterSpacing: '0.5px',
+              boxShadow: `0 4px 15px ${themeColor}40`, transition: 'all 0.2s', letterSpacing: '0.5px',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
@@ -806,7 +981,8 @@ function FloodWinModal({ steps, onRetry, onMenu }: {
       </div>
 
       <style>{`
-        @keyframes floodWinFadeIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+        @keyframes winFadeIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+        @keyframes winBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
       `}</style>
     </div>
   )
@@ -821,6 +997,7 @@ export default function Simulator() {
   const status      = useSimulationStore((s) => s.status)
   const instructions = useSimulationStore((s) => s.instructions)
   const currentLevel = useSimulationStore((s) => s.currentLevel)
+  const studentGroup = typeof window !== 'undefined' ? (sessionStorage.getItem('studentGroup') ?? 'unknown') : 'unknown'
   const setLevel    = useSimulationStore((s) => s.setLevel)
   const isMoving    = useSimulationStore((s) => s.isMoving)
   const commandQueue = useSimulationStore((s) => s.commandQueue)
@@ -834,85 +1011,43 @@ export default function Simulator() {
   const setTrapActive = useSimulationStore((s) => s.setTrapActive)
   const steps       = useSimulationStore((s) => s.steps)
 
-  // Level carousel
+  const [isTabActive, setIsTabActive] = useState(true)
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabActive(!document.hidden)
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
+  // Level carousel (PS/Xbox Game Menu style)
   const [showLevelSelector, setShowLevelSelector] = useState(true)
-  const [activeIndex, setActiveIndex] = useState(1)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-  const [dragOffset, setDragOffset] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const dragStartRef = useRef<{ x: number; time: number } | null>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const levels = CARDS_DATA // gempa, banjir, tsunami
+
+  const goNext = () => 
+    setActiveIndex((prev) => (prev + 1) % levels.length)
+  const goPrev = () => 
+    setActiveIndex((prev) => 
+      (prev - 1 + levels.length) % levels.length)
 
   // Camera shake ref (for earthquake)
   const shakeStateRef = useRef<ShakeState>({
     active: false, startTime: 0, duration: 0, amplitude: 0,
   })
 
-  const isEarthquake = currentLevel === 'earthquake'
-  const isFlood = currentLevel === 'flood'
-
-  const EXTENDED_CARDS = [
-    { ...CARDS_DATA[CARDS_DATA.length - 1], originalIndex: 2, isClone: true, key: 'clone-last' },
-    ...CARDS_DATA.map((c, i) => ({ ...c, originalIndex: i, isClone: false, key: `real-${i}` })),
-    { ...CARDS_DATA[0], originalIndex: 0, isClone: true, key: 'clone-first' },
-  ]
-
-  const handleNext = () => {
-    if (isTransitioning) return
-    setIsTransitioning(true)
-    setActiveIndex(prev => prev + 1)
-  }
-
-  const handlePrev = () => {
-    if (isTransitioning) return
-    setIsTransitioning(true)
-    setActiveIndex(prev => prev - 1)
-  }
-
-  useEffect(() => {
-    if (isTransitioning) {
-      const t = setTimeout(() => {
-        setIsTransitioning(false)
-        if (activeIndex === EXTENDED_CARDS.length - 1) setActiveIndex(1)
-        else if (activeIndex === 0) setActiveIndex(EXTENDED_CARDS.length - 2)
-      }, 500)
-      return () => clearTimeout(t)
-    }
-  }, [activeIndex, isTransitioning])
-
-  const startDrag  = (clientX: number) => {
-    if (isTransitioning) return
-    setIsDragging(true)
-    dragStartRef.current = { x: clientX, time: Date.now() }
-  }
-  const moveDrag   = (clientX: number) => {
-    if (!isDragging || !dragStartRef.current) return
-    setDragOffset(clientX - dragStartRef.current.x)
-  }
-  const endDrag    = () => {
-    if (!isDragging || !dragStartRef.current) return
-    setIsDragging(false)
-    const diff = dragOffset
-    const velocity = Math.abs(diff / (Date.now() - dragStartRef.current.time))
-    setDragOffset(0)
-    dragStartRef.current = null
-    if (diff < -80 || (diff < -20 && velocity > 0.3)) handleNext()
-    else if (diff > 80 || (diff > 20 && velocity > 0.3)) handlePrev()
-    else setIsTransitioning(true)
-  }
-
-  const handleTouchStart = (e: React.TouchEvent) => startDrag(e.touches[0].clientX)
-  const handleTouchMove  = (e: React.TouchEvent) => moveDrag(e.touches[0].clientX)
-  const handleTouchEnd   = () => endDrag()
-  const handleMouseDown  = (e: React.MouseEvent) => startDrag(e.clientX)
-  const handleMouseMove  = (e: React.MouseEvent) => moveDrag(e.clientX)
-  const handleMouseUp    = () => endDrag()
-  const handleMouseLeave = () => { if (isDragging) endDrag() }
-
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
+  const isEarthquake = currentLevel === 'earthquake'
+  const isFlood = currentLevel === 'flood'
+  const gameStatus = currentLevel && !showLevelSelector ? currentLevel : null
+
   const handleSelectLevel = (index: number) => {
-    const levels: ('earthquake' | 'flood' | 'tsunami')[] = ['earthquake', 'flood', 'tsunami']
-    const chosen = levels[index]
+    const levelsList: ('earthquake' | 'flood' | 'tsunami')[] = ['earthquake', 'flood', 'tsunami']
+    const chosen = levelsList[index]
     setLevel(chosen)
     setShowLevelSelector(false)
 
@@ -930,26 +1065,26 @@ export default function Simulator() {
     }
   }
 
+  // Keyboard support
   useEffect(() => {
     if (!showLevelSelector) return
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') handlePrev()
-      else if (e.key === 'ArrowRight') handleNext()
-      else if (e.key === 'Enter') handleSelectLevel(EXTENDED_CARDS[activeIndex].originalIndex)
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') goNext()
+      if (e.key === 'ArrowLeft') goPrev()
+      if (e.key === 'Enter') handleSelectLevel(activeIndex)
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showLevelSelector, activeIndex, isTransitioning])
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [activeIndex, showLevelSelector])
 
   // Broadcast channel
   useEffect(() => {
+    if (isLoading) return
     const channel = supabase.channel('tracking-channel')
-    channel.subscribe((subStatus) => {
-      console.log('Simulator broadcast sender status:', subStatus)
-    })
+    channel.subscribe()
     channelRef.current = channel
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  }, [isLoading])
 
   useEffect(() => {
     if (channelRef.current) {
@@ -957,10 +1092,18 @@ export default function Simulator() {
       channelRef.current.send({
         type: 'broadcast',
         event: 'simulation_update',
-        payload: { group_id: 'group-a', x, z, status, last_command: lastCommand, updated_at: new Date().toISOString() },
+        payload: {
+          group_id: studentGroup,
+          x,
+          z,
+          level: currentLevel,
+          status,
+          last_command: lastCommand,
+          updated_at: new Date().toISOString()
+        },
       })
     }
-  }, [x, z, status, instructions])
+  }, [x, z, status, instructions, studentGroup, currentLevel])
 
   // Process command queue
   useEffect(() => {
@@ -977,8 +1120,41 @@ export default function Simulator() {
     }
   }, [isMoving, commandQueue, moveForward, moveBackward, turnLeft, turnRight, shiftCommand])
 
+  // Auto-reload simulation after 3s when hit by tsunami (failed state)
+  useEffect(() => {
+    if (status === 'failed') {
+      const timer = setTimeout(() => {
+        useSimulationStore.getState().resetSimulation()
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [status])
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-sky-50">
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleUp {
+          from { transform: scale(0.9) translateY(10px); opacity: 0; }
+          to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes loadingBar {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-scale-up {
+          animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-loading-bar {
+          animation: loadingBar 3s linear forwards;
+        }
+      `}</style>
 
       {/* ── Level Selector Overlay ─────────────────────────── */}
       {showLevelSelector && (
@@ -1033,81 +1209,185 @@ export default function Simulator() {
             <p className="text-sm text-white/50 tracking-widest uppercase mt-1">Pilih Level Bencana</p>
           </div>
 
-          {/* Carousel */}
+          {/* Carousel Viewport Container */}
           <div
-            className="w-full overflow-hidden flex items-center justify-center relative h-[65vh]"
-            onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
-            onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseLeave}
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              position: 'relative',
+              height: '65vh',
+            }}
+            className="overflow-hidden pointer-events-none"
           >
             {/* Nav arrows */}
-            {[{ side: 'left', onClick: handlePrev, label: '←' }, { side: 'right', onClick: handleNext, label: '→' }].map(a => (
-              <button
-                key={a.side}
-                onClick={a.onClick}
-                style={{
-                  position: 'fixed', [a.side]: '2rem', top: '50%', transform: 'translateY(-50%)',
-                  backgroundColor: 'white', border: '4px solid #1A1A2E', width: '56px', height: '56px',
-                  fontWeight: 900, boxShadow: '4px 4px 0 #1A1A2E', transition: 'all 0.2s',
-                }}
-                className="z-20 flex items-center justify-center text-2xl hover:scale-105 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none text-[#1A1A2E] rounded-md"
-              >
-                {a.label}
-              </button>
-            ))}
+            <button
+              onClick={goPrev}
+              style={{
+                position: 'absolute',
+                left: '2rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                backgroundColor: '#1A1A2E',
+                border: '4px solid #FFE135',
+                color: '#FFE135',
+                width: '48px',
+                height: '48px',
+                borderRadius: '8px',
+                fontWeight: 900,
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                zIndex: 110,
+                transition: 'all 0.2s',
+              }}
+              className="flex items-center justify-center hover:scale-105 active:scale-95 pointer-events-auto"
+            >
+              ←
+            </button>
+            <button
+              onClick={goNext}
+              style={{
+                position: 'absolute',
+                right: '2rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                backgroundColor: '#1A1A2E',
+                border: '4px solid #FFE135',
+                color: '#FFE135',
+                width: '48px',
+                height: '48px',
+                borderRadius: '8px',
+                fontWeight: 900,
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                zIndex: 110,
+                transition: 'all 0.2s',
+              }}
+              className="flex items-center justify-center hover:scale-105 active:scale-95 pointer-events-auto"
+            >
+              →
+            </button>
 
-            {/* Slides */}
-            <div className="relative w-full h-full flex items-center justify-center">
-              {EXTENDED_CARDS.map((card, index) => {
-                const offset = index - activeIndex
-                const absOffset = Math.abs(offset)
-                let scale = 1.05, blur = 0, brightness = 1, zIndex = 10
-                if (absOffset === 1) { scale = 0.82; blur = 1; brightness = 0.6; zIndex = 5 }
-                else if (absOffset >= 2) { scale = 0.65; blur = 2; brightness = 0.4; zIndex = 1 }
+            {/* Slider track (Centered flex container) */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                position: 'relative',
+                height: '100%',
+              }}
+              className="pointer-events-auto"
+            >
+              {levels.map((card, index) => {
+                const isActive = activeIndex === index;
+                let diff = index - activeIndex;
+                if (diff === 2) diff = -1;
+                if (diff === -2) diff = 1;
 
                 return (
                   <div
-                    key={card.key}
-                    onClick={() => { if (offset !== 0 && !isTransitioning && !isDragging) { if (offset > 0) handleNext(); else handlePrev() } }}
+                    key={card.id}
                     style={{
-                      width: '420px', height: '100%', position: 'absolute', left: '50%', top: '50%',
-                      transform: `translate(-50%, -50%) translateX(calc(${offset * 85}% + ${dragOffset}px)) scale(${scale})`,
-                      filter: `blur(${blur}px) brightness(${brightness})`,
-                      background: card.bgGradient,
-                      border: offset === 0 ? '4px solid #FFE135' : '4px solid rgba(255,255,255,0.2)',
-                      boxShadow: offset === 0 ? '8px 8px 0px #FF6B6B' : 'none',
-                      transition: isDragging ? 'none' : (isTransitioning ? 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'),
-                      zIndex,
+                      position: 'absolute',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      transform: `translateX(${diff * 320}px) scale(${isActive ? 1.0 : 0.85})`,
+                      transition: 'all 0.3s ease',
+                      zIndex: isActive ? 30 : 10,
                     }}
-                    className={`max-w-[90vw] rounded-2xl flex flex-col overflow-hidden select-none ${offset === 0 ? 'cursor-default' : 'cursor-pointer'}`}
                   >
-                    <div className={`h-[55%] w-full flex items-center justify-center relative ${card.bgPatternClass}`}>
-                      <div
-                        style={{
-                          animation: offset === 0 ? (
-                            card.id === 'earthquake' ? 'quakeShake 0.5s ease-in-out infinite' :
-                            card.id === 'flood' ? 'floodRise 2s ease-in-out infinite' :
-                            'tsunamiRun 0.8s ease-in-out infinite'
-                          ) : 'none'
-                        }}
-                        className="text-7xl select-none"
-                      >
-                        {card.previewEmoji}
+                    {/* The Card */}
+                    <div
+                      onClick={() => {
+                        if (isActive) {
+                          handleSelectLevel(index)
+                        } else {
+                          setActiveIndex(index)
+                        }
+                      }}
+                      style={{
+                        width: isActive ? '380px' : '300px',
+                        height: isActive ? '480px' : '400px',
+                        background: card.bgGradient,
+                        border: isActive ? '4px solid #FFE135' : '4px solid rgba(255,255,255,0.4)',
+                        opacity: isActive ? 1 : 0.6,
+                        filter: isActive ? 'none' : 'blur(1px)',
+                        boxShadow: isActive ? '0px 20px 40px rgba(0, 0, 0, 0.4)' : 'none',
+                        transition: 'all 0.3s ease',
+                      }}
+                      className="rounded-2xl flex flex-col overflow-hidden cursor-pointer"
+                    >
+                      {/* Emoji header area */}
+                      <div className={`h-[55%] w-full flex items-center justify-center relative ${card.bgPatternClass}`}>
+                        <div
+                          style={{
+                            animation: isActive ? (
+                              card.id === 'earthquake' ? 'quakeShake 0.5s ease-in-out infinite' :
+                              card.id === 'flood' ? 'floodRise 2s ease-in-out infinite' :
+                              'tsunamiRun 0.8s ease-in-out infinite'
+                            ) : 'none'
+                          }}
+                          className="text-7xl select-none"
+                        >
+                          {card.previewEmoji}
+                        </div>
+                      </div>
+
+                      {/* Info footer area */}
+                      <div className="h-[45%] bg-black/30 px-6 py-5 flex flex-col justify-between">
+                        <div>
+                          <span className="bg-[#FFE135] text-[#1A1A2E] font-black text-xs px-3 py-1 border-2 border-white inline-block">
+                            {card.levelText}
+                          </span>
+                          <h3 className="font-black text-3xl text-white mt-2">
+                            {card.title}
+                          </h3>
+                          <p className="text-sm text-white/80 mt-2 leading-snug">
+                            {card.description}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs text-white/60 mt-3 items-center">
+                          {card.stats.map((stat, i) => (
+                            <span key={i} className="flex items-center">
+                              {i > 0 && <span className="mr-2 text-white/30">•</span>}
+                              <span>{stat}</span>
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    <div className="h-[45%] bg-black/30 px-6 py-5 flex flex-col justify-between">
-                      <div>
-                        <span className="bg-[#FFE135] text-[#1A1A2E] font-black text-xs px-3 py-1 border-2 border-white inline-block">{card.levelText}</span>
-                        <h3 className="font-black text-3xl text-white mt-2">{card.title}</h3>
-                        <p className="text-sm text-white/80 mt-2 leading-snug">{card.description}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2 text-xs text-white/60 mt-3 items-center">
-                        {card.stats.map((stat, i) => (
-                          <span key={i} className="flex items-center">
-                            {i > 0 && <span className="mr-2 text-white/30">•</span>}
-                            <span>{stat}</span>
-                          </span>
-                        ))}
-                      </div>
+
+                    {/* Active Card CTA Button */}
+                    <div 
+                      style={{ 
+                        marginTop: '24px', 
+                        textAlign: 'center',
+                        position: 'relative',
+                      }} 
+                    >
+                      {isActive && (
+                        <button
+                          onClick={() => handleSelectLevel(index)}
+                          style={{
+                            backgroundColor: '#FFE135',
+                            color: '#1A1A2E',
+                            fontWeight: 900,
+                            fontSize: '1rem',
+                            border: '4px solid white',
+                            boxShadow: '4px 4px 0px rgba(0,0,0,0.2)',
+                            padding: '8px 24px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                          className="rounded-xl uppercase tracking-wider hover:scale-105 active:scale-95 pointer-events-auto"
+                        >
+                          MULAI →
+                        </button>
+                      )}
                     </div>
                   </div>
                 )
@@ -1115,27 +1395,27 @@ export default function Simulator() {
             </div>
           </div>
 
-          {/* Bottom CTA + dots */}
+          {/* Bottom Indicators */}
           <div className="flex flex-col items-center gap-6 pb-8 z-10 w-full max-w-[90vw] mx-auto">
-            <button
-              onClick={() => handleSelectLevel(EXTENDED_CARDS[activeIndex].originalIndex)}
-              style={{
-                backgroundColor: '#FFE135', color: '#1A1A2E', fontWeight: 900, fontSize: '1.125rem',
-                border: '4px solid white', boxShadow: '6px 6px 0px rgba(255,255,255,0.3)',
-                paddingLeft: '3rem', paddingRight: '3rem', paddingTop: '1rem', paddingBottom: '1rem', transition: 'all 0.2s',
-              }}
-              className="hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_rgba(255,255,255,0.4)] active:translate-y-0 active:shadow-[4px_4px_0px_rgba(255,255,255,0.2)] rounded-xl uppercase tracking-wider"
-            >
-              {EXTENDED_CARDS[activeIndex].ctaText}
-            </button>
             <div className="flex gap-2.5 items-center">
               {[0, 1, 2].map((idx) => {
-                const cur = EXTENDED_CARDS[activeIndex].originalIndex
+                const isActive = activeIndex === idx
                 return (
                   <button
                     key={idx}
-                    onClick={() => { if (!isTransitioning && idx !== cur) { setIsTransitioning(true); setActiveIndex(idx + 1) } }}
-                    className={`transition-all duration-300 ${idx === cur ? 'bg-[#FFE135] w-8 h-3 rounded-full' : 'bg-white/30 w-3 h-3 rounded-full hover:bg-white/50'}`}
+                    onClick={() => {
+                      setActiveIndex(idx)
+                    }}
+                    style={{
+                      height: '12px',
+                      borderRadius: '999px',
+                      backgroundColor: isActive ? '#FFE135' : '#666666',
+                      width: isActive ? '24px' : '12px',
+                      transition: 'all 0.3s ease',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                    className="pointer-events-auto"
                   />
                 )
               })}
@@ -1146,7 +1426,7 @@ export default function Simulator() {
 
       {/* ── 3D Canvas ─────────────────────────────────────── */}
       {currentLevel && !showLevelSelector && (
-        <Canvas shadows>
+        <Canvas shadows frameloop={isTabActive ? 'always' : 'never'}>
           <Suspense fallback={null}>
             {/* PerspectiveCamera for earthquake + flood (orbit); Orthographic for tsunami */}
             {(isEarthquake || isFlood) ? (
@@ -1208,6 +1488,9 @@ export default function Simulator() {
         : <StandardVocabHUD />
       )}
 
+      {/* ── Tsunami Timer HUD ────────────────────────────────── */}
+      {currentLevel === 'tsunami' && !showLevelSelector && <TsunamiTimerHUD />}
+
       {/* ── Trap Overlay ──────────────────────────────────── */}
       {currentLevel && !showLevelSelector && isTrapActive && (
         <div
@@ -1223,33 +1506,46 @@ export default function Simulator() {
         ) : isFlood ? (
           <FloodLoadingScreen />
         ) : (
-          <div className="absolute inset-0 z-40 bg-yellow-100 flex flex-col items-center justify-center pointer-events-auto">
-            <div className="flex flex-col items-center justify-center p-8 bg-white border-4 border-black rounded-2xl shadow-brutal max-w-lg mx-4 text-center">
-              <div className="text-6xl animate-bounce mb-5">🏃‍♂️💨</div>
-              <h2 className="text-2xl font-black text-black mb-2 animate-pulse">Menyiapkan Simulasi Area...</h2>
-              <p className="text-sm font-bold text-slate-500 mb-6">Harap tunggu sebentar</p>
-              <div className="bg-yellow-50 border-4 border-black rounded-xl p-5 shadow-brutal-sm text-left">
-                <p className="text-base font-black text-amber-950 flex items-start gap-2.5 leading-relaxed">
-                  <span className="text-2xl animate-pulse">💡</span>
-                  <span>Tips: Jangan gunakan langkah boros tidak berguna! Gunakanlah jalan tercepat untuk menyelamatkan diri.</span>
-                </p>
-              </div>
-            </div>
-          </div>
+          <LevelLoadingScreen />
         )
       )}
 
-      {/* ── Flood Win Modal ───────────────────────────────── */}
-      {isFlood && !showLevelSelector && status === 'success' && (
-        <FloodWinModal
+      {/* ── Game Win Modal ────────────────────────────────── */}
+      {currentLevel && !showLevelSelector && (status === 'success' || status === 'partial_win') && (
+        <GameWinModal
+          level={currentLevel}
+          status={status}
           steps={steps}
           onRetry={() => { useSimulationStore.getState().resetSimulation() }}
           onMenu={() => setShowLevelSelector(true)}
         />
       )}
 
+      {/* ── Tsunami Fail Overlay ───────────────────────────── */}
+      {currentLevel === 'tsunami' && !showLevelSelector && status === 'failed' && (
+        <div className="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-fade-in">
+          <div className="bg-[#1E1E2E]/90 border-2 border-red-500 rounded-3xl p-8 max-w-md text-center shadow-[0_0_50px_rgba(239,68,68,0.3)] animate-scale-up backdrop-blur-lg">
+            <div className="w-24 h-24 bg-red-500/10 border-4 border-red-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <span className="text-5xl">🌊</span>
+            </div>
+            <h2 className="text-3xl font-black text-red-500 tracking-wide uppercase mb-3">TSUNAMI MENERJANG!</h2>
+            <p className="text-slate-300 text-sm leading-relaxed mb-6 font-medium">
+              Kamu gagal mengevakuasi diri ke tempat aman sebelum gelombang tsunami tiba di darat.
+            </p>
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-xs text-white/40 uppercase tracking-widest font-bold animate-pulse">
+                Memuat Ulang Simulasi...
+              </span>
+              <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-red-500 animate-loading-bar" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Instruction Panel ─────────────────────────────── */}
-      {currentLevel && !showLevelSelector && <InstructionPanel />}
+      {!isLoading && gameStatus && <InstructionPanel />}
 
       {/* ── Fallback Suspense Spinner ─────────────────────── */}
       {currentLevel && !showLevelSelector && (
