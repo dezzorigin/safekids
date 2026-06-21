@@ -56,7 +56,7 @@ export default function AdminLoginPage() {
               {mode === 'login' ? '👨🏫 Login Guru' : '📝 Daftar Guru'}
             </h1>
             <p className="text-xs font-bold text-brutal-yellow/60 mt-0.5 uppercase tracking-widest">
-              JAK PLUENG! Portal
+              SafeKids Portal
             </p>
           </div>
 
@@ -137,8 +137,13 @@ export default function AdminLoginPage() {
           </form>
         </div>
 
+        {/* Demo hint */}
+        <p className="mt-3 text-center text-xs text-gray-400 font-bold">
+          Demo: guru@gmail.com / 123123
+        </p>
+
         {/* Back link */}
-        <div className="mt-4 text-center">
+        <div className="mt-3 text-center">
           <button
             onClick={() => navigate('/')}
             className="text-sm font-black text-brutal-black underline decoration-2 underline-offset-2 hover:text-brutal-coral transition-colors"

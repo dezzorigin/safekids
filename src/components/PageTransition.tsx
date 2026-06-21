@@ -235,11 +235,11 @@ export default function PageTransition() {
           display: 'inline-block',
           textTransform: 'uppercase'
         }}>
-          🌊 LIDM 2025 · MICROTEACHING PORTAL
+          🌊 PGMI · UIN AR-RANIRY 2026
         </div>
 
         <h1 className="transition-title">
-          JAK PLUENG!
+          SafeKids
         </h1>
         
         <div className="transition-subtitle">

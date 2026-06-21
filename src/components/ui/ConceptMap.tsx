@@ -519,7 +519,7 @@ export default function ConceptMap() {
         ref={svgRef}
         viewBox={`0 0 ${SIM_W} ${SIM_H}`}
         width="100%"
-        height="auto"
+        height="100%"
         style={{ display: 'block', overflow: 'visible', cursor: 'default' }}
         onMouseMove={onSVGMouseMove}
         onMouseLeave={onSVGMouseLeave}

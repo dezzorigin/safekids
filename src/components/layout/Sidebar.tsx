@@ -41,11 +41,11 @@ const NAV_ITEMS: NavItemConfig[] = [
     description: 'Video evakuasi bencana',
   },
   {
-    label: 'Tutorial & Ice Break',
+    label: 'Ice Breaking',
     icon: '🎵',
     path: '/tutorial',
     color: 'bg-brutal-lavender',
-    description: 'Video AR & ice breaking',
+    description: 'Lagu & aktivitas ice breaking',
   },
   {
     label: 'Evacuation 3D',
@@ -126,10 +126,10 @@ export default function Sidebar() {
                 transition={{ duration: 0.2 }}
               >
                 <p className="text-sm font-black text-brutal-black leading-none mb-0.5 uppercase tracking-wide" style={{ whiteSpace: 'nowrap' }}>
-                  JAK PLUENG!
+                  SafeKids
                 </p>
                 <p className="text-[9px] font-bold text-brutal-black/60 uppercase tracking-widest leading-none">
-                  LIDM Portal
+                  UIN Ar-Raniry
                 </p>
               </motion.div>
             )}

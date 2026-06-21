@@ -3,13 +3,13 @@ import { useLocation } from 'react-router-dom'
 // ─── Route title map ──────────────────────────────────────────────────────────
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
-  '/':            { title: 'JAK PLUENG!',           subtitle: 'Portal Microteaching Bahasa Inggris' },
+  '/':            { title: 'SafeKids',           subtitle: 'Media Pembelajaran Evakuasi Bencana untuk Siswa MI/SD' },
   '/admin':       { title: 'Dashboard Guru',         subtitle: 'Panel kontrol & monitoring sesi' },
   '/mission':     { title: 'Mission Briefing',       subtitle: 'Tools pembelajaran interaktif' },
   '/teammaker':   { title: 'Team Maker',             subtitle: 'Pembagian kelompok belajar siswa' },
   '/video':       { title: 'Evacuation Video', subtitle: 'Analisis kepanikan vs evakuasi terstruktur' },
-  '/tutorial':    { title: 'Tutorial & Ice Break',   subtitle: 'Materi onboarding & ice breaking' },
-  '/simulator':   { title: 'Evacuation 3D',          subtitle: 'Simulasi bencana — giving instructions' },
+  '/tutorial':    { title: 'Ice Breaking',             subtitle: 'Lagu & Ice Breaking SafeKids' },
+  '/simulator':   { title: 'Evacuation 3D',          subtitle: 'Interactive Disaster Evacuation Learning for Elementary Students' },
   '/vocabulary':  { title: 'Vocabulary Lab',         subtitle: 'Latihan kosakata bahasa Inggris' },
   '/evaluation':  { title: 'Evaluation',             subtitle: 'Penilaian & hasil belajar siswa' },
   '/reflection':  { title: 'Refleksi Digital',       subtitle: 'Word cloud & refleksi kelas' },
@@ -23,7 +23,7 @@ function getRouteInfo(pathname: string) {
   const prefix = Object.keys(ROUTE_TITLES).find(
     (key) => key !== '/' && pathname.startsWith(key),
   )
-  return prefix ? ROUTE_TITLES[prefix] : { title: 'JAK PLUENG!', subtitle: '' }
+  return prefix ? ROUTE_TITLES[prefix] : { title: 'SafeKids', subtitle: '' }
 }
 
 // ─── TopNavigation Component ──────────────────────────────────────────────────

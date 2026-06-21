@@ -2,26 +2,19 @@ import React, { useState, useEffect, useRef } from 'react'
 
 const TEAM_MEMBERS = [
   {
-    name: 'Nanda Blauliadka',
-    role: 'Lead Developer & Architect',
-    avatar: '👨‍💻',
+    name: 'Najwa Azzahra',
+    role: 'Pembuat Media Pembelajaran',
+    avatar: '👩‍🎓',
     bgGradient: 'linear-gradient(135deg, #1A1A2E 0%, #2d1b69 100%)',
-    description: 'Arsitek utama yang merancang sistem portal microteaching.',
+    description: 'NIM 240209050 — PGMI, Fakultas Tarbiyah dan Keguruan, UIN Ar-Raniry.',
   },
   {
-    name: 'Sarah Amalia',
-    role: 'Instructional Designer',
-    avatar: '👩‍🏫',
-    bgGradient: 'linear-gradient(135deg, #FF6B6B 0%, #c0392b 100%)',
-    description: 'Penyusun kurikulum dan materi bahasa Inggris mitigasi bencana.',
-  },
-  {
-    name: 'Rizky Pratama',
-    role: 'UI/UX & 3D Artist',
-    avatar: '🎨',
+    name: 'Nanda Blauliadka',
+    role: 'Developer & Arsitek Sistem',
+    avatar: '👨‍💻',
     bgGradient: 'linear-gradient(135deg, #4ECDC4 0%, #087f5b 100%)',
-    description: 'Merancang antarmuka interaktif dan pemodelan 3D simulator.',
-  }
+    description: 'Pengembang aplikasi media pembelajaran SafeKids.',
+  },
 ]
 
 export default function MastermindsCarousel() {
@@ -32,7 +25,7 @@ export default function MastermindsCarousel() {
   const dragStartRef = useRef<{ x: number; time: number } | null>(null)
 
   const EXTENDED_CARDS = [
-    { ...TEAM_MEMBERS[2], originalIndex: 2, key: 'clone-last' },
+    { ...TEAM_MEMBERS[TEAM_MEMBERS.length - 1], originalIndex: TEAM_MEMBERS.length - 1, key: 'clone-last' },
     ...TEAM_MEMBERS.map((m, i) => ({ ...m, originalIndex: i, key: `real-${i}` })),
     { ...TEAM_MEMBERS[0], originalIndex: 0, key: 'clone-first' }
   ]
@@ -106,9 +99,9 @@ export default function MastermindsCarousel() {
   return (
     <div className="w-full relative overflow-hidden py-12 bg-transparent select-none">
       <div className="text-center mb-10">
-        <h2 className="text-4xl font-black text-brutal-black">🧠 The Masterminds</h2>
+        <h2 className="text-4xl font-black text-brutal-black">👩‍🎓 Tentang SafeKids</h2>
         <p className="mt-2 text-sm font-bold tracking-widest uppercase text-brutal-black/50">
-          Tim di Balik Layar JAK PLUENG!
+          Media Pembelajaran | PGMI, UIN Ar-Raniry 2026
         </p>
       </div>
 

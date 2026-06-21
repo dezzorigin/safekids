@@ -57,21 +57,51 @@ export default function WelcomePage() {
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-none border-2 border-brutal-black bg-brutal-black px-4 py-1.5 shadow-brutal-sm">
             <span className="text-xs font-black uppercase tracking-widest text-brutal-yellow">
-              LIDM 2025 · Microteaching Portal
+              PGMI · UIN Ar-Raniry 2026
             </span>
           </div>
 
           {/* Main heading */}
           <h1 className="mb-3 text-7xl font-black text-brutal-black leading-none drop-shadow-sm">
-            JAK PLUENG! 🌊
+            SafeKids 🌊
           </h1>
 
           <p className="mb-2 text-xl font-bold text-brutal-black/70">
-            Portal Microteaching Bahasa Inggris
+            Interactive Disaster Evacuation Learning Media for Elementary Students
           </p>
-          <p className="mb-12 text-sm font-bold uppercase tracking-widest text-brutal-black/50">
-            Giving &amp; Following Instructions · Konteks Bencana Alam
+          <p className="mb-10 text-sm font-bold uppercase tracking-widest text-brutal-black/50">
+            Learn. Simulate. Stay Safe.
           </p>
+
+          {/* ── Quick-start guide ── */}
+          <div className="mb-8 flex flex-wrap justify-center gap-4">
+            {[
+              { icon: '👤', step: '1', title: 'Pilih Peran', desc: 'Login sebagai Guru atau pilih kelompok sebagai Siswa' },
+              { icon: '📖', step: '2', title: 'Ikuti Sesi', desc: 'Guru memandu 6 tahapan pembelajaran interaktif' },
+              { icon: '🎮', step: '3', title: 'Bermain & Belajar', desc: 'Selesaikan simulasi evakuasi & evaluasi bersama' },
+            ].map(({ icon, step, title, desc }) => (
+              <div key={step} className="relative w-44 border-4 border-brutal-black bg-white shadow-brutal p-4 pt-5 text-left">
+                <div className="absolute -top-3 -left-3 h-7 w-7 border-2 border-brutal-black bg-brutal-black flex items-center justify-center">
+                  <span className="text-xs font-black text-brutal-yellow">{step}</span>
+                </div>
+                <div className="text-2xl mb-1">{icon}</div>
+                <p className="text-sm font-black text-brutal-black mb-1">{title}</p>
+                <p className="text-xs text-gray-500 leading-snug">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Download guide button */}
+          <div className="mb-8">
+            <a
+              href="https://bzyvozxzvjovevkrebwe.supabase.co/storage/v1/object/public/docs/SafeKids_User_Guide.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 border-4 border-brutal-black bg-white px-6 py-2.5 text-sm font-black text-brutal-black shadow-brutal transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-lg active:translate-x-1 active:translate-y-1 active:shadow-none"
+            >
+              📄 Download Panduan Lengkap
+            </a>
+          </div>
 
           {/* CTA buttons */}
           <div className="flex flex-wrap items-center justify-center gap-5">
@@ -168,10 +198,10 @@ export default function WelcomePage() {
       {/* ── Footer ──────────────────────────────────────────────── */}
       <footer className="border-t-4 border-brutal-black bg-brutal-black px-6 py-8 text-center">
         <p className="text-sm font-bold text-brutal-yellow">
-          JAK PLUENG! · LIDM 2025 · Microteaching Bahasa Inggris
+          SafeKids · Interactive Disaster Evacuation Learning Media
         </p>
-        <p className="mt-1 text-xs text-brutal-yellow/50 font-bold uppercase tracking-widest">
-          Giving &amp; Following Instructions in Natural Disaster Context
+        <p className="mt-2 text-xs text-brutal-yellow/60 font-bold">
+          © 2026 Najwa Azzahra — NIM 240209050 | Media Pembelajaran | PGMI, UIN Ar-Raniry
         </p>
       </footer>
     </div>

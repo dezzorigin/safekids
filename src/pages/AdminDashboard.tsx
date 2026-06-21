@@ -134,13 +134,23 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!sessionId) return
     
-    // Remove old channel
-    if (presenceChannelRef.current) {
-      supabase.removeChannel(presenceChannelRef.current)
+    const channelName = `presence-session-${sessionId}`
+    
+    // Clean up channel from supabase's internal list synchronously if it exists to prevent React 18 double-subscription issues
+    const existing = supabase.getChannels().find(
+      (ch) => ch.topic === channelName
+    )
+    if (existing) {
+      supabase.removeChannel(existing)
+      if ((supabase as any).realtime && (supabase as any).realtime.channels) {
+        (supabase as any).realtime.channels = (supabase as any).realtime.channels.filter(
+          (ch: any) => ch !== existing
+        )
+      }
     }
     
     // Create new channel with new sessionId
-    const channel = supabase.channel(`presence-session-${sessionId}`)
+    const channel = supabase.channel(channelName)
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState()
@@ -161,7 +171,14 @@ export default function AdminDashboard() {
     
     presenceChannelRef.current = channel
     
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(channel)
+      if ((supabase as any).realtime && (supabase as any).realtime.channels) {
+        (supabase as any).realtime.channels = (supabase as any).realtime.channels.filter(
+          (ch: any) => ch !== channel
+        )
+      }
+    }
   }, [sessionId])
 
   const channelsRef = useRef<any[]>([])
@@ -382,7 +399,7 @@ export default function AdminDashboard() {
         doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15)
         doc.setFontSize(10)
         doc.setTextColor(136, 136, 136)
-        doc.text("JAK PLUENG! — LIDM Portal", 14, pageHeight - 10)
+        doc.text("SafeKids — PGMI, UIN Ar-Raniry 2026", 14, pageHeight - 10)
         doc.text(`Halaman ${pageNumber}`, pageWidth - 14, pageHeight - 10, { align: "right" })
       }
 
@@ -393,10 +410,10 @@ export default function AdminDashboard() {
       doc.setTextColor(26, 26, 26)
       doc.setFont("helvetica", "bold")
       doc.setFontSize(36)
-      doc.text("JAK PLUENG!", pageWidth / 2, pageHeight / 4, { align: "center" })
+      doc.text("SafeKids", pageWidth / 2, pageHeight / 4, { align: "center" })
       
       doc.setFontSize(16)
-      doc.text("LIDM Portal — Laporan Hasil Sesi Pembelajaran", pageWidth / 2, (pageHeight / 4) + 15, { align: "center" })
+      doc.text("Media Pembelajaran — Laporan Hasil Sesi", pageWidth / 2, (pageHeight / 4) + 15, { align: "center" })
       
       doc.setTextColor(26, 26, 26)
       doc.setFontSize(12)
@@ -541,7 +558,7 @@ export default function AdminDashboard() {
 
       addFooter((doc.internal as any).getNumberOfPages())
 
-      doc.save(`Hasil_Sesi_JAK_PLUENG_${new Date().toISOString().split('T')[0]}.pdf`)
+      doc.save(`Hasil_Sesi_SafeKids_${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (err) {
       console.error("Failed to generate PDF", err)
       alert("Gagal mengexport file: " + String(err))
