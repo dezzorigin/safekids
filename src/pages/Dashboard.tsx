@@ -145,7 +145,7 @@ export default function Dashboard() {
             <span className="text-black">Teacher!</span>
           </h2>
           <p className="text-sm font-black text-black max-w-lg">
-            Portal Microteaching Bahasa Inggris — materi <strong className="text-black">Giving &amp; Following Instructions</strong> dalam konteks bencana alam.
+            Media Pembelajaran Evakuasi Bencana untuk Siswa MI/SD — <strong className="text-black">PGMI, UIN Ar-Raniry 2026</strong>
           </p>
         </div>
       </motion.div>

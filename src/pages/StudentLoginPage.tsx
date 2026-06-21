@@ -288,30 +288,25 @@ export default function StudentLoginPage() {
       >
         {/* 1. Top Badge */}
         <div className="badge-item">
-          🌊 LIDM 2025 · MICROTEACHING PORTAL
+          🌊 PGMI · UIN AR-RANIRY 2026
         </div>
 
         {/* 2. Brand Title */}
         <h1 className="title-item">
-          JAK PLUENG!
+          SafeKids
         </h1>
 
-        {/* 3. Acehnese Translation */}
-        <div className="meaning-item">
-          [ lari · run · scamper ]
-        </div>
-
-        {/* 4. Color Stripe Divider */}
+        {/* 3. Color Stripe Divider */}
         <div className="divider-item" />
 
-        {/* 5. Tagline */}
+        {/* 4. Tagline */}
         <div className="tagline-item">
-          Portal Microteaching Bahasa Inggris
+          Interactive Disaster Evacuation Learning Media for Elementary Students
         </div>
 
-        {/* 6. Sub Tagline */}
+        {/* 5. Sub Tagline */}
         <div className="subtagline-item">
-          Giving &amp; Following Instructions · Konteks Bencana Alam
+          Learn. Simulate. Stay Safe.
         </div>
 
         {/* 7. Chunky Progress Bar */}

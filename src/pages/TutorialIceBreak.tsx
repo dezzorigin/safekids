@@ -60,49 +60,7 @@ export default function TutorialIceBreak() {
   return (
     <div className="min-h-full bg-[#FFFEF7] w-full p-8">
       <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto">
-        {/* === SECTION 1: TUTORIAL VIDEO === */}
-        <div
-          className="bg-white border-4 border-[#1A1A2E] overflow-hidden p-4"
-          style={{ boxShadow: '6px 6px 0px #1A1A2E' }}
-        >
-          {/* Header */}
-          <div className="mb-6">
-            <span className="bg-[#74C0FC] text-[#1A1A2E] font-black text-xs px-3 py-1.5 border-2 border-[#1A1A2E] inline-block mb-3 select-none">
-              🎮 TUTORIAL · 3D SIMULATOR
-            </span>
-            <h1 className="font-black text-3xl text-[#1A1A2E] mt-0" style={{ fontFamily: '"Nunito", sans-serif' }}>
-              Tutorial Simulasi Evakuasi 3D
-            </h1>
-            <p className="text-base font-bold text-[#1A1A2E]/70 mt-1" style={{ fontFamily: '"Nunito", sans-serif' }}>
-              Pelajari cara bermain ketiga level bencana
-            </p>
-          </div>
-
-          {/* YouTube Iframe */}
-          <div
-            className="w-full overflow-hidden border-4 border-[#1A1A2E]"
-            style={{
-              boxShadow: '6px 6px 0px #1A1A2E',
-              background: '#000',
-            }}
-          >
-            <iframe
-              src="https://www.youtube.com/embed/CaleAY14_0Q?vq=hd1080&hd=1&rel=0&modestbranding=1"
-              title="JAK PLUNG! Tutorial Simulasi Evakuasi 3D"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{
-                width: '100%',
-                height: '560px',
-                maxWidth: '100%',
-                border: 'none',
-                display: 'block',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* === SECTION 2: LAGU ICE BREAK === */}
+        {/* === SECTION: LAGU ICE BREAK === */}
         <div
           className="bg-[#1A1A2E] border-4 border-[#FFE135] overflow-hidden p-8"
           style={{ boxShadow: '6px 6px 0px #FFE135' }}
@@ -110,7 +68,7 @@ export default function TutorialIceBreak() {
           {/* Header */}
           <div className="mb-6">
             <span className="bg-[#FFE135] text-[#1A1A2E] font-black text-xs px-3 py-1.5 border-2 border-[#1A1A2E] inline-block mb-3 select-none">
-              🎵 ICE BREAKING · LAGU JAK PLUNG!
+              🎵 ICE BREAKING · LAGU SAFEKIDS
             </span>
             <h1 className="font-black text-3xl text-white mt-0" style={{ fontFamily: '"Nunito", sans-serif' }}>
               Step by Step to Safety
@@ -147,7 +105,7 @@ export default function TutorialIceBreak() {
                   🎵
                 </span>
                 <h3 className="font-black text-2xl text-[#1A1A2E] m-0" style={{ fontFamily: '"Nunito", sans-serif' }}>
-                  JAK PLUNG!
+                  SafeKids
                 </h3>
                 <p className="text-sm font-bold text-[#1A1A2E]/80 m-0 mt-1" style={{ fontFamily: '"Nunito", sans-serif' }}>
                   Step by Step to Safety
@@ -184,7 +142,7 @@ export default function TutorialIceBreak() {
                     Step by Step to Safety
                   </h4>
                   <p className="text-gray-400 text-xs m-0 mt-1" style={{ fontFamily: '"Nunito", sans-serif' }}>
-                    JAK PLUNG! Theme Song
+                    SafeKids Theme Song
                   </p>
                 </div>
 
@@ -315,8 +273,8 @@ export default function TutorialIceBreak() {
                     Chorus 🎵
                   </span>
                   <p className="text-gray-300 text-sm leading-loose m-0 font-bold">
-                    <span className="text-[#FFE135] font-black">JAK PLUNG!</span> <span className="text-[#FFE135] font-black">JAK PLUNG!</span> We are smart!<br />
-                    <span className="text-[#FFE135] font-black">JAK PLUNG!</span> <span className="text-[#FFE135] font-black">JAK PLUNG!</span> Do your part!<br />
+                    <span className="text-[#FFE135] font-black">SafeKids!</span> <span className="text-[#FFE135] font-black">SafeKids!</span> We are smart!<br />
+                    <span className="text-[#FFE135] font-black">SafeKids!</span> <span className="text-[#FFE135] font-black">SafeKids!</span> Do your part!<br />
                     Move forward now, don't walk alone,<br />
                     Everybody, go to safe zone!
                   </p>
@@ -345,8 +303,8 @@ export default function TutorialIceBreak() {
                     Chorus 🎵
                   </span>
                   <p className="text-gray-300 text-sm leading-loose m-0 font-bold">
-                    <span className="text-[#FFE135] font-black">JAK PLUNG!</span> <span className="text-[#FFE135] font-black">JAK PLUNG!</span> We are smart!<br />
-                    <span className="text-[#FFE135] font-black">JAK PLUNG!</span> <span className="text-[#FFE135] font-black">JAK PLUNG!</span> Do your part!<br />
+                    <span className="text-[#FFE135] font-black">SafeKids!</span> <span className="text-[#FFE135] font-black">SafeKids!</span> We are smart!<br />
+                    <span className="text-[#FFE135] font-black">SafeKids!</span> <span className="text-[#FFE135] font-black">SafeKids!</span> Do your part!<br />
                     Move forward now, don't walk alone,<br />
                     Everybody, go to safe zone!
                   </p>
@@ -375,8 +333,8 @@ export default function TutorialIceBreak() {
                     Chorus 🎵
                   </span>
                   <p className="text-gray-300 text-sm leading-loose m-0 font-bold">
-                    <span className="text-[#FFE135] font-black">JAK PLUNG!</span> <span className="text-[#FFE135] font-black">JAK PLUNG!</span> We are smart!<br />
-                    <span className="text-[#FFE135] font-black">JAK PLUNG!</span> <span className="text-[#FFE135] font-black">JAK PLUNG!</span> Do your part!<br />
+                    <span className="text-[#FFE135] font-black">SafeKids!</span> <span className="text-[#FFE135] font-black">SafeKids!</span> We are smart!<br />
+                    <span className="text-[#FFE135] font-black">SafeKids!</span> <span className="text-[#FFE135] font-black">SafeKids!</span> Do your part!<br />
                     Move forward now, don't walk alone,<br />
                     Everybody, go to safe zone!
                   </p>

@@ -43,7 +43,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
       const latestSessionId = session.id
       console.log('[PRESENCE] Student joining channel:', `presence-session-${latestSessionId}`)
 
-      const channel = supabase.channel(`presence-session-${latestSessionId}`, {
+      const channelName = `presence-session-${latestSessionId}`
+
+      // Clean up channel from supabase's internal list synchronously if it exists to prevent React 18 double-subscription issues
+      const existing = supabase.getChannels().find(
+        (ch) => ch.topic === channelName
+      )
+      if (existing) {
+        supabase.removeChannel(existing)
+        if ((supabase as any).realtime && (supabase as any).realtime.channels) {
+          (supabase as any).realtime.channels = (supabase as any).realtime.channels.filter(
+            (ch: any) => ch !== existing
+          )
+        }
+      }
+
+      const channel = supabase.channel(channelName, {
         config: {
           presence: {
             key: `group-${studentGroup}`
@@ -69,7 +84,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return () => {
       isSubscribed = false
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
+        const ch = channelRef.current
+        supabase.removeChannel(ch)
+        if ((supabase as any).realtime && (supabase as any).realtime.channels) {
+          (supabase as any).realtime.channels = (supabase as any).realtime.channels.filter(
+            (c: any) => c !== ch
+          )
+        }
         channelRef.current = null
         setIsChannelReady(false)
       }
@@ -104,6 +125,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
         >
           {children}
         </main>
+
+        {/* Footer credit */}
+        <footer className="flex-shrink-0 border-t-2 border-brutal-black bg-brutal-black px-6 py-2 text-center">
+          <p className="text-xs font-bold text-brutal-yellow/70">
+            © 2026 Najwa Azzahra — NIM 240209050 | Media Pembelajaran | PGMI, UIN Ar-Raniry
+          </p>
+        </footer>
       </div>
     </div>
   )

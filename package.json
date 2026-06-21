@@ -1,5 +1,6 @@
 {
-  "name": "navigator",
+  "name": "safekids",
+  "description": "Interactive disaster evacuation learning media for elementary students. PGMI, UIN Ar-Raniry 2026.",
   "private": true,
   "version": "0.1.0",
   "type": "module",
