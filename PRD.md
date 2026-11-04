@@ -5,7 +5,6 @@
 | Field | Nilai |
 |---|---|
 | Nama Proyek | Safekids |
-| Repo | dezzorigin/safekids |
 | Tech Stack | Vite |
 | Status | Hampir selesai (beta) |
 | Penanggung Jawab | Nabil Aulia Dika |
@@ -14,7 +13,7 @@
 
 ## 2. Latar Belakang
 
-Proyek ini dikembangkan sebagai bagian dari portofolio dan kebutuhan operasional. Dokumen ini mengikuti standar PRD nasional untuk memastikan ruang lingkup, fitur, dan kriteria keberhasilan terdefinisi dengan jelas.
+Proyek ini dikembangkan sebagai bagian dari portofolio dan kebutuhan operasional. Dokumen ini mengikuti standar PRD nasional agar ruang lingkup, fitur, dan kriteria keberhasilan terdefinisi dengan jelas.
 
 ## 3. Masalah yang Diselesaikan
 
@@ -41,14 +40,13 @@ Pengguna membutuhkan solusi digital yang efisien, terukur, dan mudah dipelihara 
 
 Struktur proyek (file/direktori utama):
 - .claude/
-- .env.local
-- .gitignore
+- src/
+- LICENSE
+- PRD.md
 - README.md
 - index.html
-- package-lock.json
 - package.json
 - postcss.config.js
-- src/
 - tailwind.config.js
 - tsconfig.json
 - tsconfig.node.json
