@@ -1,75 +1,44 @@
-# SafeKids — Disaster Evacuation Learning Media
+# Safekids
 
-> "Learn. Simulate. Stay Safe."
+Safekids — project by Nabil Aulia Dika (dezzorigin).
 
-Interactive web-based learning media for elementary school 
-students (MI/SD) focused on disaster evacuation education 
-through English microteaching activities.
+## Status Proyek
 
----
+**Hampir selesai (beta)** _(README ada, build artifact ada (sudah di-build))_
 
-## 📋 About This Project
+## Tech Stack
 
-**SafeKids** is developed as a Media Pembelajaran (Learning Media) 
-project for the Pendidikan Guru Madrasah Ibtidaiyah (PGMI) program 
-at UIN Ar-Raniry Banda Aceh.
+Vite
 
-The application provides two modes:
-- **Teacher Mode**: Manage sessions, monitor students via 
-  live dashboard, spin wheel group assignment, 
-  real-time word cloud & quiz scores
-- **Student Mode**: Interactive learning modules including 
-  concept maps, evacuation videos, ice breaking song, 
-  3D evacuation simulator, quiz, and digital reflection
+## Struktur Proyek
 
----
+```
+.claude/
+.env.local
+.gitignore
+README.md
+index.html
+package-lock.json
+package.json
+postcss.config.js
+src/
+tailwind.config.js
+tsconfig.json
+tsconfig.node.json
+vercel.json
+vite.config.ts
+```
 
-## 🎯 Learning Objectives
+## Getting Started
 
-- Students can give and follow basic evacuation instructions in English
-- Students can identify safe zones during earthquake, flood, and tsunami
-- Students develop critical thinking through 3D evacuation simulation
-- Teachers can monitor student progress in real-time
+```bash
+npm install
+npm run dev
+```
 
----
+## Lisensi
 
-## 🚀 Tech Stack
-
-- **Core**: React 18, TypeScript, Vite
-- **Routing**: React Router DOM
-- **Styling**: Tailwind CSS (Neo-Brutalism design)
-- **3D Rendering**: React Three Fiber, Drei, Three.js
-- **Backend**: Supabase (Auth, Database, Realtime)
-- **State Management**: Zustand, React Context
-- **Animations**: Framer Motion
+MIT — lihat file [LICENSE](./LICENSE).
 
 ---
-
-## 🌐 Live Demo
-
-https://safekids.vercel.app
-
----
-
-## 📄 User Guide
-
-Download the complete user guide (PDF):
-https://bzyvozxzvjovevkrebwe.supabase.co/storage/v1/object/public/docs/SafeKids_User_Guide.pdf
-
----
-
-## 👩‍🎓 Developer
-
-**Najwa Azzahra**  
-NIM: 240209050  
-Program Studi: Pendidikan Guru Madrasah Ibtidaiyah (PGMI)  
-Fakultas Tarbiyah dan Keguruan  
-Universitas Islam Negeri Ar-Raniry  
-Banda Aceh, 2026
-
----
-
-## 📝 License
-
-This project is developed for educational purposes as part of 
-the Media Pembelajaran course at UIN Ar-Raniry.
+_Dibuat dan dikelola oleh Nabil Aulia Dika. Kontribusi dan issue welcome._
