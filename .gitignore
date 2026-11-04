@@ -12,3 +12,12 @@ node_modules
 dist
 dist-ssr
 build
+^.env.*
+node_modules/
+.next/
+__pycache__/
+.venv/
+dist/
+build/
+.DS_Store
+^.env.*
