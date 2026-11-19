@@ -54,7 +54,6 @@ export default function TeamMaker() {
         cancelAnimationFrame(animFrameRef.current)
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Sync ref to current active names list
@@ -62,7 +61,6 @@ export default function TeamMaker() {
   useEffect(() => {
     remainingNamesRef.current = remainingNames
     drawWheel(rotationRef.current)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remainingNames])
 
   // Draw wheel function

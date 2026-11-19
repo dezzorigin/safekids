@@ -183,6 +183,31 @@ body {
   to   { opacity: 1; }
 }
 
+/* ─── Landing: ticker + anchor offset ─────────────────────────────────────── */
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  animation: ticker-scroll 26s linear infinite;
+}
+
+/* Sticky navbar menutup jangkar — beri ruang saat lompat ke #fitur/#alur/dll */
+section[id] {
+  scroll-margin-top: 76px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 
 
 

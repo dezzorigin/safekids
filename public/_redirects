@@ -1,0 +1,4 @@
+# Cloudflare Pages SPA fallback: semua rute (mis. /simulator, /video)
+# dilayani index.html supaya React Router yang menangani routing.
+# Tanpa ini, deep link / refresh di rute aplikasi mengembalikan 404.
+/*  /index.html  200
