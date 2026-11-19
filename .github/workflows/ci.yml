@@ -154,12 +154,18 @@ jobs:
             sudo timeout 90 apt-get update -qq || true
             sudo timeout 240 apt-get install -y -qq ffmpeg
           fi
-          VIDEO=$(find test-results -name 'video.webm' -print -quit)
+          # Pilih video TERBESAR: tes yang di-skip (mobile) juga menghasilkan
+          # file video.webm stub ~1 detik — `find -print -quit` pernah
+          # mengambil stub itu (run 44532434947: demo.mp4 cuma 1 detik).
+          VIDEO=$(find test-results -name 'video.webm' -printf '%s %p\n' | sort -nr | head -n 1 | cut -d' ' -f2-)
           test -n "$VIDEO" || { echo "FAIL: video.webm tidak ditemukan di test-results/"; find test-results -type f | head -20; exit 1; }
-          echo "video sumber: $VIDEO"
+          echo "video sumber: $VIDEO ($(stat -c%s "$VIDEO") byte)"
           mkdir -p media-capture
           ffmpeg -y -i "$VIDEO" -c:v libx264 -pix_fmt yuv420p -movflags +faststart media-capture/demo.mp4
           ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,codec_name -of default=noprint_wrappers=1 media-capture/demo.mp4
+          DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 media-capture/demo.mp4)
+          echo "durasi demo.mp4: ${DUR}s"
+          python3 -c "import sys; sys.exit(0 if float('$DUR') >= 5 else 1)" || { echo "FAIL: demo.mp4 terlalu pendek (< 5 detik) — kemungkinan stub video tes skip"; exit 1; }
           ls -la media-capture/
 
       - name: Upload readme media (screenshots + demo video)
