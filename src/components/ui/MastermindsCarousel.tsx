@@ -1,19 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react'
 
-const TEAM_MEMBERS = [
+// Kartu brand SafeKids (white-label PR #3): bukan kartu orang —
+// nilai/fitur produk, tanpa nama personal atau atribusi institusi.
+const BRAND_CARDS = [
   {
-    name: 'Najwa Azzahra',
-    role: 'Pembuat Media Pembelajaran',
-    avatar: '👩‍🎓',
-    bgGradient: 'linear-gradient(135deg, #1A1A2E 0%, #2d1b69 100%)',
-    description: 'NIM 240209050 — PGMI, Fakultas Tarbiyah dan Keguruan, UIN Ar-Raniry.',
+    name: 'Belajar Sambil Bermain',
+    role: 'Media Interaktif',
+    avatar: '🎮',
+    bgGradient: 'linear-gradient(135deg, #4ECDC4 0%, #087f5b 100%)',
+    description: 'Materi evakuasi bencana dikemas lewat permainan dan simulasi yang mudah dipahami siswa MI/SD.',
   },
   {
-    name: 'Nanda Blauliadka',
-    role: 'Developer & Arsitek Sistem',
-    avatar: '👨‍💻',
-    bgGradient: 'linear-gradient(135deg, #4ECDC4 0%, #087f5b 100%)',
-    description: 'Pengembang aplikasi media pembelajaran SafeKids.',
+    name: 'Simulasi Evakuasi 3D',
+    role: 'Peta 10×10 Interaktif',
+    avatar: '🌊',
+    bgGradient: 'linear-gradient(135deg, #1A1A2E 0%, #2d1b69 100%)',
+    description: 'Siswa memandu evakuasi di peta 10×10 dalam 6 langkah ±90 menit, dipandu guru.',
+  },
+  {
+    name: 'Siap Hadapi Bencana',
+    role: 'Untuk Sekolah',
+    avatar: '🛡️',
+    bgGradient: 'linear-gradient(135deg, #FF6B6B 0%, #c92a2a 100%)',
+    description: 'Panduan guru, sesi kelas, dan dashboard pemantauan — semua dalam satu aplikasi SafeKids.',
   },
 ]
 
@@ -25,9 +34,9 @@ export default function MastermindsCarousel() {
   const dragStartRef = useRef<{ x: number; time: number } | null>(null)
 
   const EXTENDED_CARDS = [
-    { ...TEAM_MEMBERS[TEAM_MEMBERS.length - 1], originalIndex: TEAM_MEMBERS.length - 1, key: 'clone-last' },
-    ...TEAM_MEMBERS.map((m, i) => ({ ...m, originalIndex: i, key: `real-${i}` })),
-    { ...TEAM_MEMBERS[0], originalIndex: 0, key: 'clone-first' }
+    { ...BRAND_CARDS[BRAND_CARDS.length - 1], originalIndex: BRAND_CARDS.length - 1, key: 'clone-last' },
+    ...BRAND_CARDS.map((m, i) => ({ ...m, originalIndex: i, key: `real-${i}` })),
+    { ...BRAND_CARDS[0], originalIndex: 0, key: 'clone-first' }
   ]
 
   const handleNext = () => {
@@ -99,9 +108,9 @@ export default function MastermindsCarousel() {
   return (
     <div className="w-full relative overflow-hidden py-12 bg-transparent select-none">
       <div className="text-center mb-10">
-        <h2 className="text-4xl font-black text-brutal-black">👩‍🎓 Tentang SafeKids</h2>
+        <h2 className="text-4xl font-black text-brutal-black">Tentang SafeKids</h2>
         <p className="mt-2 text-sm font-bold tracking-widest uppercase text-brutal-black/50">
-          Media Pembelajaran | PGMI, UIN Ar-Raniry 2026
+          Media Pembelajaran Evakuasi Bencana
         </p>
       </div>
 

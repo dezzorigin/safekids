@@ -129,7 +129,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* Footer credit */}
         <footer className="flex-shrink-0 border-t-2 border-brutal-black bg-brutal-black px-6 py-2 text-center">
           <p className="text-xs font-bold text-brutal-yellow/70">
-            © 2026 Najwa Azzahra — NIM 240209050 | Media Pembelajaran | PGMI, UIN Ar-Raniry
+            © 2026 SafeKids — Disaster Evacuation Learning Media
           </p>
         </footer>
       </div>

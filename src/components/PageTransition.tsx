@@ -235,7 +235,7 @@ export default function PageTransition() {
           display: 'inline-block',
           textTransform: 'uppercase'
         }}>
-          🌊 PGMI · UIN AR-RANIRY 2026
+          🌊 LEARN. SIMULATE. STAY SAFE.
         </div>
 
         <h1 className="transition-title">

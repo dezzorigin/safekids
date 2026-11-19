@@ -79,7 +79,7 @@ export default function WelcomePage() {
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-none border-2 border-brutal-black bg-brutal-black px-4 py-1.5 shadow-brutal-sm">
             <span className="text-xs font-black uppercase tracking-widest text-brutal-yellow">
-              PGMI · UIN Ar-Raniry 2026
+              Media Pembelajaran Evakuasi Bencana
             </span>
           </div>
 
@@ -231,7 +231,7 @@ export default function WelcomePage() {
           SafeKids · Interactive Disaster Evacuation Learning Media
         </p>
         <p className="mt-2 text-xs text-brutal-yellow/60 font-bold">
-          © 2026 Najwa Azzahra — NIM 240209050 | Media Pembelajaran | PGMI, UIN Ar-Raniry
+          © 2026 SafeKids — Disaster Evacuation Learning Media
         </p>
         <p className="mt-3">
           <a

@@ -129,7 +129,7 @@ export default function Sidebar() {
                   SafeKids
                 </p>
                 <p className="text-[9px] font-bold text-brutal-black/60 uppercase tracking-widest leading-none">
-                  UIN Ar-Raniry
+                  dezzorigin
                 </p>
               </motion.div>
             )}
