@@ -117,6 +117,7 @@ jobs:
   # ── E2E Playwright (landing + alur utama, HANYA di CI) ─────────────────
   playwright-e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -141,11 +142,18 @@ jobs:
       # Media capture README (e2e/media-capture.spec.ts): screenshot adegan
       # kunci ke media-capture/ + video Playwright (.webm) -> demo.mp4.
       # Artifact `readme-media` diunduh lalu di-commit ke docs/ (README).
+      # timeout-minutes + `timeout` di apt: apt-get update pernah
+      # menggantung >10 menit di runner (run 44528716237) — jangan biarkan
+      # satu step menahan job.
       - name: Convert walkthrough video to MP4
         if: always()
+        timeout-minutes: 6
         run: |
           set -euo pipefail
-          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          if ! command -v ffmpeg >/dev/null; then
+            sudo timeout 90 apt-get update -qq || true
+            sudo timeout 240 apt-get install -y -qq ffmpeg
+          fi
           VIDEO=$(find test-results -name 'video.webm' -print -quit)
           test -n "$VIDEO" || { echo "FAIL: video.webm tidak ditemukan di test-results/"; find test-results -type f | head -20; exit 1; }
           echo "video sumber: $VIDEO"

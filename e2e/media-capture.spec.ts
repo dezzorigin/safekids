@@ -12,6 +12,10 @@ test.use({ video: { mode: 'on', size: { width: 1280, height: 800 } } })
 
 test('media capture: alur siswa beranda → kelompok → simulator 3D (desktop)', async ({ page }) => {
   test.skip(test.info().project.name !== 'desktop', 'media capture desktop only')
+  // Demo mode: tanpa kunci Supabase, client memakai placeholder host.
+  // Abort traffic itu supaya halaman kelompok langsung fallback ke
+  // [1..5] tanpa menunggu DNS/fetch yang bisa menggantung di runner.
+  await page.route('**/supabase.co/**', async (route) => route.abort())
 
   // Adegan 1: beranda asli (hero + 3 kartu quick-start + CTA guru/siswa).
   await page.goto('/')
