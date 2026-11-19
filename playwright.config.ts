@@ -15,10 +15,17 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'npx vite preview --port 8511 --strictPort',
+    // POLA RANTAI (#46-#48, terbukti hijau): sajikan dist/ dengan
+    // python http.server, BUKAN `npx vite preview`. Percobaan pertama
+    // repo ini memakai vite preview dan CI gagal total di langkah ini:
+    // "Timed out waiting 60000ms from config.webServer" (run
+    // 44512978467) — preview tidak pernah menjawab di 127.0.0.1:8511.
+    // Tes hanya navigasi via klik (client-side routing), jadi tanpa
+    // SPA fallback pun cukup: server hanya perlu melayani / + aset.
+    command: 'python3 -m http.server 8511 --directory dist --bind 127.0.0.1',
     url: 'http://127.0.0.1:8511/',
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    reuseExistingServer: true,
+    timeout: 30_000,
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },

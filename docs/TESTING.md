@@ -36,6 +36,13 @@ npm run build
 npm run e2e
 ```
 
+Server lokal tes adalah `python3 -m http.server 8511 --directory dist`
+(pola rantai #46–#48). `npx vite preview` JANGAN dipakai: run CI
+pertama repo ini gagal total di langkah webServer — "Timed out waiting
+60000ms from config.webServer" (run 44512978467) — preview tidak pernah
+menjawab di 127.0.0.1:8511. Tes hanya navigasi via klik (client-side
+routing), jadi tanpa SPA fallback pun cukup.
+
 ## 3. Verifikasi lokal (yang BISA dilakukan di VM dev)
 
 ```bash
