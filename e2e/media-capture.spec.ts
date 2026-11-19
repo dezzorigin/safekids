@@ -19,7 +19,9 @@ test('media capture: alur siswa beranda → kelompok → simulator 3D (desktop)'
   // Demo mode: tanpa kunci Supabase, client memakai placeholder host.
   // Abort traffic itu supaya halaman kelompok langsung fallback ke
   // [1..5] tanpa menunggu DNS/fetch yang bisa menggantung di runner.
-  await page.route('**/supabase.co/**', async (route) => route.abort())
+  // (Pola harus '*supabase.co' — host-nya 'placeholder.supabase.co',
+  // bukan '/supabase.co/'.)
+  await page.route('**/*supabase.co/**', async (route) => route.abort())
 
   // Adegan 1: beranda asli (hero + 3 kartu quick-start + CTA guru/siswa).
   await page.goto('/')
@@ -54,11 +56,14 @@ test('media capture: alur siswa beranda → kelompok → simulator 3D (desktop)'
   await page.waitForTimeout(2000)
   await page.screenshot({ path: 'media-capture/04-simulator.png' })
 
-  // Adegan 5: mulai level Gempa -> grid 3D (Canvas). WebGL di CI
-  // (SwiftShader) kadang lambat: best-effort, jangan gagalkan capture
-  // bila canvas tak muncul — screenshot level-select sudah cukup.
+  // Adegan 5: mulai level Gempa -> grid 3D (Canvas). Tombol CTA asli
+  // bertuliskan "MULAI →" (ctaText di CARDS_DATA tidak pernah dirender —
+  // jangan cari teks "Mulai Gempa Bumi", locator itu tak pernah cocok
+  // dan click-nya menggantung sampai timeout tes, run 44530980088).
+  // WebGL di CI (SwiftShader) kadang lambat: best-effort, jangan gagalkan
+  // capture bila canvas tak muncul — screenshot level-select sudah cukup.
   try {
-    await page.locator('text=Mulai Gempa Bumi').first().click()
+    await page.getByRole('button', { name: /MULAI/ }).click({ timeout: 10000 })
     await page.locator('canvas').first().waitFor({ state: 'visible', timeout: 12000 })
     await page.waitForTimeout(2500)
     await page.screenshot({ path: 'media-capture/05-simulator-3d.png' })
