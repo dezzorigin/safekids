@@ -47,7 +47,9 @@ const speakWord = (word: string) => {
 
   try {
     window.speechSynthesis.cancel()
-  } catch (_) {}
+  } catch {
+    /* speechSynthesis mungkin belum tersedia di browser ini */
+  }
 
   // Gunakan setTimeout agar browser memproses pembatalan sebelum mengucapkan yang baru
   setTimeout(() => {
@@ -111,7 +113,9 @@ function playBuzzSound() {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
     osc.start(ctx.currentTime)
     osc.stop(ctx.currentTime + 0.25)
-  } catch (_) { /* browsers may block without gesture */ }
+  } catch {
+    /* browsers may block without gesture */
+  }
 }
 
 // ─── Level Selector Data ──────────────────────────────────────────────────────

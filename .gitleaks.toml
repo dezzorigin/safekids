@@ -1,0 +1,9 @@
+# Gitleaks — konfigurasi repo safekids.
+#
+# Riwayat repo ini sudah di-rewrite (P3, 18 Nov 2026) dan terverifikasi
+# nol file .env; scan lokal gitleaks 8.28.0 atas riwayat penuh:
+# "no leaks found" (19 Nov 2026). Tidak ada allowlist — kalau ada temuan
+# secret sungguhan, job CI gagal dan penanganannya adalah lapor ke
+# koordinator, BUKAN tambah allowlist.
+[extend]
+useDefault = true

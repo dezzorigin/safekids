@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>SafeKids — Diagram Arsitektur</title>
+<style>
+  body { font-family: "JetBrains Mono", ui-monospace, monospace; background: #FFFEF7; color: #1A1A2E; margin: 0; padding: 32px; }
+  h1 { font-family: "Nunito", sans-serif; font-size: 28px; font-weight: 900; margin: 0 0 4px; }
+  p.sub { margin: 0 0 24px; color: #55556a; font-size: 13px; }
+  svg { display: block; max-width: 960px; width: 100%; height: auto; background: #fff; border: 4px solid #1A1A2E; box-shadow: 8px 8px 0 #1A1A2E; }
+  .note { max-width: 960px; margin-top: 20px; font-size: 13px; line-height: 1.7; }
+  .note b { background: #FFE135; padding: 0 4px; border: 2px solid #1A1A2E; }
+</style>
+</head>
+<body>
+<h1>SafeKids — Diagram Arsitektur</h1>
+<p class="sub">Vite SPA · React Three Fiber · Supabase opsional (mode demo) · Cloudflare Pages</p>
+<svg viewBox="0 0 960 560" role="img" aria-label="Diagram arsitektur SafeKids">
+  <!-- pengguna -->
+  <rect x="20" y="40" width="180" height="72" fill="#FFE135" stroke="#1A1A2E" stroke-width="4"/>
+  <text x="110" y="70" text-anchor="middle" font-size="15" font-weight="bold">PENGGUNA</text>
+  <text x="110" y="94" text-anchor="middle" font-size="12">Guru / Siswa SD</text>
+  <!-- browser -->
+  <rect x="20" y="180" width="180" height="72" fill="#ffffff" stroke="#1A1A2E" stroke-width="4"/>
+  <text x="110" y="210" text-anchor="middle" font-size="15" font-weight="bold">BROWSER</text>
+  <text x="110" y="234" text-anchor="middle" font-size="12">React Router (SPA)</text>
+  <!-- pages -->
+  <rect x="300" y="40" width="220" height="200" fill="#4ECDC4" stroke="#1A1A2E" stroke-width="4"/>
+  <text x="410" y="70" text-anchor="middle" font-size="15" font-weight="bold">PAGES (14 rute)</text>
+  <text x="410" y="98" text-anchor="middle" font-size="12">/ landing + peta BFS</text>
+  <text x="410" y="120" text-anchor="middle" font-size="12">/simulator (lazy, 3D)</text>
+  <text x="410" y="142" text-anchor="middle" font-size="12">/mission /video /tutorial</text>
+  <text x="410" y="164" text-anchor="middle" font-size="12">/evaluation /teammaker</text>
+  <text x="410" y="186" text-anchor="middle" font-size="12">/reflection /dashboard-guru</text>
+  <text x="410" y="208" text-anchor="middle" font-size="12">/admin/login /student/*</text>
+  <!-- store -->
+  <rect x="300" y="300" width="220" height="120" fill="#74C0FC" stroke="#1A1A2E" stroke-width="4"/>
+  <text x="410" y="330" text-anchor="middle" font-size="15" font-weight="bold">ZUSTAND STORE</text>
+  <text x="410" y="358" text-anchor="middle" font-size="12">LEVELS: gempa / banjir</text>
+  <text x="410" y="380" text-anchor="middle" font-size="12">/ tsunami — grid 10×10</text>
+  <text x="410" y="402" text-anchor="middle" font-size="12">status game · antrean perintah</text>
+  <!-- 3d -->
+  <rect x="620" y="40" width="320" height="120" fill="#FF6B6B" stroke="#1A1A2E" stroke-width="4"/>
+  <text x="780" y="70" text-anchor="middle" font-size="15" font-weight="bold">SIMULATOR 3D (lazy chunk)</text>
+  <text x="780" y="98" text-anchor="middle" font-size="12">React Three Fiber + drei + three</text>
+  <text x="780" y="120" text-anchor="middle" font-size="12">Avatar · MapGrid · Environment</text>
+  <text x="780" y="142" text-anchor="middle" font-size="12">±1 MB · tidak dimuat landing</text>
+  <!-- supabase -->
+  <rect x="620" y="300" width="320" height="120" fill="#ffffff" stroke="#1A1A2E" stroke-width="4" stroke-dasharray="10 6"/>
+  <text x="780" y="330" text-anchor="middle" font-size="15" font-weight="bold">SUPABASE (OPSIONAL)</text>
+  <text x="780" y="358" text-anchor="middle" font-size="12">Auth guru · sinkronisasi kelas</text>
+  <text x="780" y="380" text-anchor="middle" font-size="12">Tanpa kredensial → placeholder</text>
+  <text x="780" y="402" text-anchor="middle" font-size="12">→ MODE DEMO, fitur lokal jalan</text>
+  <!-- pages deploy -->
+  <rect x="20" y="440" width="920" height="80" fill="#1A1A2E" stroke="#1A1A2E" stroke-width="4"/>
+  <text x="480" y="472" text-anchor="middle" font-size="15" font-weight="bold" fill="#FFE135">CLOUDFLARE PAGES — safekids.pages.dev</text>
+  <text x="480" y="498" text-anchor="middle" font-size="12" fill="#FFFEF7">dist/ statis · public/_redirects: /* → /index.html 200 (SPA fallback) · og-image.png 1200×630</text>
+  <!-- arrows -->
+  <line x1="110" y1="112" x2="110" y2="180" stroke="#1A1A2E" stroke-width="3" marker-end="url(#arr)"/>
+  <line x1="200" y1="216" x2="300" y2="216" stroke="#1A1A2E" stroke-width="3" marker-end="url(#arr)"/>
+  <line x1="520" y1="120" x2="620" y2="120" stroke="#1A1A2E" stroke-width="3" marker-end="url(#arr)"/>
+  <line x1="410" y1="240" x2="410" y2="300" stroke="#1A1A2E" stroke-width="3" marker-end="url(#arr)"/>
+  <line x1="520" y1="360" x2="620" y2="360" stroke="#1A1A2E" stroke-width="3" stroke-dasharray="8 5" marker-end="url(#arr)"/>
+  <line x1="110" y1="252" x2="110" y2="440" stroke="#1A1A2E" stroke-width="3" marker-end="url(#arr)"/>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1A1A2E"/>
+    </marker>
+  </defs>
+</svg>
+<div class="note">
+  <p><b>Alur baca:</b> pengguna membuka <b>safekids.pages.dev</b> → Pages menyajikan
+  <b>dist/</b> statis → React Router menampilkan landing atau modul → simulator 3D
+  dimuat malas (lazy) hanya saat rute <b>/simulator</b> dibuka → state permainan
+  tinggal di Zustand store → bila kredensial Supabase diisi, login guru dan
+  sinkronisasi kelas aktif; bila tidak, aplikasi tetap jalan dalam mode demo.</p>
+  <p><b>Data jujur:</b> peta evakuasi di landing menghitung rute terpendek (BFS)
+  dari <b>LEVELS</b> yang sama dengan yang dipakai simulator — bukan mockup.</p>
+</div>
+</body>
+</html>
