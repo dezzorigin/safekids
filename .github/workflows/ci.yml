@@ -117,6 +117,7 @@ jobs:
   # ── E2E Playwright (landing + alur utama, HANYA di CI) ─────────────────
   playwright-e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -137,6 +138,65 @@ jobs:
 
       - name: E2E landing (desktop + mobile Pixel 7)
         run: npm run e2e
+
+      # Media capture README (e2e/media-capture.spec.ts): screenshot adegan
+      # kunci ke media-capture/ + video Playwright (.webm) -> demo.mp4.
+      # Artifact `readme-media` diunduh lalu di-commit ke docs/ (README).
+      # ffmpeg: urutan — (1) ffmpeg sistem; (2) static build johnvansickle
+      # (full, ber-libx264); (3) apt sebagai jalan terakhir. JANGAN pakai
+      # bundle Playwright (~/.cache/ms-playwright/ffmpeg-*/ffmpeg-linux):
+      # itu build MINIMAL (--disable-everything, tanpa libx264 dan tanpa
+      # muxer mp4) — konversi gagal exit 8 (happy-birthday-mama run
+      # 44534655548). apt saja pernah gagal exit 124 (install menggantung
+      # sampai `timeout 240`, run 44532868828).
+      # timeout-minutes: apt-get update pernah menggantung >10 menit di
+      # runner (run 44528716237) — jangan biarkan satu step menahan job.
+      - name: Convert walkthrough video to MP4
+        if: always()
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          FFMPEG="$(command -v ffmpeg || true)"
+          if [ -z "$FFMPEG" ] || ! "$FFMPEG" -hide_banner -encoders 2>/dev/null | grep -q ' libx264 '; then
+            echo "ffmpeg sistem tidak ada / tanpa libx264 — unduh static build johnvansickle"
+            curl -fsSL --max-time 120 -o /tmp/ffmpeg-static.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
+              && tar -xJf /tmp/ffmpeg-static.tar.xz -C /tmp \
+              && FFMPEG="$(ls -d /tmp/ffmpeg-*-amd64-static/ffmpeg 2>/dev/null | head -n 1 || true)"
+          fi
+          if [ -z "$FFMPEG" ] || ! "$FFMPEG" -hide_banner -encoders 2>/dev/null | grep -q ' libx264 '; then
+            echo "static build gagal — coba apt"
+            sudo timeout 120 apt-get update -qq || true
+            sudo timeout 240 apt-get install -y -qq ffmpeg || true
+            FFMPEG="$(command -v ffmpeg || true)"
+          fi
+          test -n "$FFMPEG" && "$FFMPEG" -hide_banner -encoders 2>/dev/null | grep -q ' libx264 ' || { echo "FAIL: ffmpeg ber-libx264 tidak tersedia"; exit 1; }
+          echo "ffmpeg: $FFMPEG"
+          # Pilih video TERBESAR: tes yang di-skip (mobile) juga menghasilkan
+          # file video.webm stub ~1 detik — `find -print -quit` pernah
+          # mengambil stub itu (run 44532434947: demo.mp4 cuma 1 detik).
+          VIDEO=$(find test-results -name 'video.webm' -printf '%s %p\n' | sort -nr | head -n 1 | cut -d' ' -f2-)
+          test -n "$VIDEO" || { echo "FAIL: video.webm tidak ditemukan di test-results/"; find test-results -type f | head -20; exit 1; }
+          echo "video sumber: $VIDEO ($(stat -c%s "$VIDEO") byte)"
+          mkdir -p media-capture
+          "$FFMPEG" -y -i "$VIDEO" -c:v libx264 -pix_fmt yuv420p -movflags +faststart media-capture/demo.mp4
+          "$FFMPEG" -hide_banner -i media-capture/demo.mp4 2>&1 | grep -E 'Duration|Video:' || true
+          SIZE=$(stat -c%s media-capture/demo.mp4)
+          echo "demo.mp4: ${SIZE} byte"
+          test "$SIZE" -ge 100000 || { echo "FAIL: demo.mp4 terlalu kecil (< 100 KB) — kemungkinan stub video tes skip"; exit 1; }
+          DUR=$("$FFMPEG" -hide_banner -i media-capture/demo.mp4 2>&1 | grep -o 'Duration: [0-9:.]*' | cut -d' ' -f2 || true)
+          test -n "$DUR" || { echo "FAIL: durasi demo.mp4 tidak terbaca"; exit 1; }
+          DURSEC=$(echo "$DUR" | awk -F: '{ split($3, a, "."); print $1*3600 + $2*60 + a[1] }')
+          echo "durasi demo.mp4: ${DUR} (${DURSEC} detik)"
+          test "$DURSEC" -ge 5 || { echo "FAIL: demo.mp4 terlalu pendek (< 5 detik)"; exit 1; }
+          ls -la media-capture/
+
+      - name: Upload readme media (screenshots + demo video)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: readme-media
+          path: media-capture/
+          if-no-files-found: error
 
       - name: Unggah trace saat gagal
         if: failure()
