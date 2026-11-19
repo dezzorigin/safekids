@@ -1,11 +1,12 @@
-# SafeKids — Belajar Selamat dari Bencana, Sambil Main
+# SafeKids
 
 **Live:** https://safekids-app.pages.dev/ ·
 **Repo:** https://github.com/dezzorigin/safekids
 
-SafeKids adalah media pembelajaran evakuasi bencana interaktif untuk
-siswa sekolah dasar — simulasi 3D gempa, banjir, dan tsunami di peta
-10×10, dipandu guru dalam 6 langkah ±90 menit. Dibuat untuk PGMI
+SafeKids — *Interactive Disaster Evacuation Learning Media for
+Elementary Students*. Media pembelajaran evakuasi bencana interaktif
+untuk siswa sekolah dasar: simulasi 3D gempa, banjir, dan tsunami di
+peta 10×10, dipandu guru dalam 6 langkah ±90 menit. Dibuat untuk PGMI
 UIN Ar-Raniry 2026 (Najwa Azzahra, NIM 240209050).
 
 > **Screenshot & video demo:** menyusul dari browser live (follow-up —
@@ -15,11 +16,19 @@ UIN Ar-Raniry 2026 (Najwa Azzahra, NIM 240209050).
 
 ![SafeKids — kartu preview](https://safekids-app.pages.dev/og-image.png)
 
+## Beranda
+
+Beranda aplikasi (bukan landing marketing): hero dengan 3 kartu
+quick-start (Pilih Peran → Ikuti Sesi → Bermain & Belajar), tombol
+Download Panduan Lengkap, 2 CTA (Masuk sebagai Guru / Masuk sebagai
+Siswa), lalu Peta Konsep Pembelajaran dan Alur Pembelajaran Hari Ini
+(6 langkah, ±90 menit).
+
 ## Cara main (satu sesi kelas)
 
 | Langkah | Modul | Rute |
 |---|---|---|
-| 1 | Peta Konsep — guru menjelaskan materi & tujuan | `/#peta` |
+| 1 | Peta Konsep — guru menjelaskan materi & tujuan | `/` |
 | 2 | Spin Wheel — pembagian kelompok secara acak | `/teammaker` |
 | 3 | Evacuation Video — Tsunami Aceh vs Jepang | `/video` |
 | 4 | Tutorial & Ice Break — video AR + lagu | `/tutorial` |
@@ -38,9 +47,6 @@ rintangan, capai titik aman:
 - **Gempa** — reruntuhan menutup jalan; cari rute terpendek.
 - **Banjir** — rumah terendam dan pagar pohon membatasi gerak.
 - **Tsunami** — dua titik aman, ombak datang dalam **75 detik**.
-
-Panel **Peta Evakuasi** di landing menghitung rute terpendek (BFS) dari
-data level yang sama dengan yang dipakai simulator — coba ganti levelnya.
 
 ## Menjalankan lokal
 
@@ -82,7 +88,7 @@ src/
   components/3d/            # Avatar, Environment, MapGrid
   components/layout/        # MainLayout, Sidebar, TopNavigation, TeacherRoute
   components/ui/            # ConceptMap, InstructionPanel, dsb.
-  pages/                    # WelcomePage (landing), Simulator, Evaluation, ...
+  pages/                    # WelcomePage (beranda asli), Simulator, Evaluation, ...
 scripts/                    # advisory-sweep.py (OSV), make-og-image.py (PIL)
 e2e/landing.spec.ts         # Playwright
 ```

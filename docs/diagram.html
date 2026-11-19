@@ -27,7 +27,7 @@
   <!-- pages -->
   <rect x="300" y="40" width="220" height="200" fill="#4ECDC4" stroke="#1A1A2E" stroke-width="4"/>
   <text x="410" y="70" text-anchor="middle" font-size="15" font-weight="bold">PAGES (14 rute)</text>
-  <text x="410" y="98" text-anchor="middle" font-size="12">/ landing + peta BFS</text>
+  <text x="410" y="98" text-anchor="middle" font-size="12">/ beranda asli produk</text>
   <text x="410" y="120" text-anchor="middle" font-size="12">/simulator (lazy, 3D)</text>
   <text x="410" y="142" text-anchor="middle" font-size="12">/mission /video /tutorial</text>
   <text x="410" y="164" text-anchor="middle" font-size="12">/evaluation /teammaker</text>
@@ -70,12 +70,10 @@
 </svg>
 <div class="note">
   <p><b>Alur baca:</b> pengguna membuka <b>safekids-app.pages.dev</b> → Pages menyajikan
-  <b>dist/</b> statis → React Router menampilkan landing atau modul → simulator 3D
+  <b>dist/</b> statis → React Router menampilkan beranda atau modul → simulator 3D
   dimuat malas (lazy) hanya saat rute <b>/simulator</b> dibuka → state permainan
   tinggal di Zustand store → bila kredensial Supabase diisi, login guru dan
   sinkronisasi kelas aktif; bila tidak, aplikasi tetap jalan dalam mode demo.</p>
-  <p><b>Data jujur:</b> peta evakuasi di landing menghitung rute terpendek (BFS)
-  dari <b>LEVELS</b> yang sama dengan yang dipakai simulator — bukan mockup.</p>
 </div>
 </body>
 </html>

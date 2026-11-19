@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > dan "parental control" yang tidak pernah ada di repo ini — aplikasinya
 > Vite + React Three Fiber). Riwayat yang benar dimulai dari 0.2.0.
 
+## [0.2.1] - 2026-11-19
+
+### Changed — REVERT pola landing SaaS (arah baru Nabil 19 Nov 18:28, mode AUDIT-FIX)
+- `src/pages/WelcomePage.tsx` dikembalikan ke beranda ASLI produk
+  (hero + 3 kartu quick-start + panduan PDF + CTA guru/siswa + peta
+  konsep + alur 6 langkah + footer). Panel "Peta Evakuasi" interaktif,
+  strip ticker, fitur asimetris, dan strip "Untuk Guru" dari PR #1
+  DIHAPUS — itu landing tentang app, bukan app itu sendiri.
+- Satu-satunya perbaikan UI yang dipertahankan dari PR #1: emoji
+  mentah di beranda diganti ikon Lucide SVG (pelanggaran P0 anti-slop);
+  struktur dan copy asli dipertahankan. Footer ditambah tautan GitHub
+  (higiene repo).
+- `index.html`: judul + deskripsi dikembalikan ke kata-kata asli
+  penulis ("SafeKids — Disaster Evacuation Learning Media"); tag
+  OG/Twitter dipertahankan.
+- `docs/DESIGN.md` ditulis ulang: tur referensi Mentorix dicatat,
+  clone SaaS-nya DITOLAK; kontrak sekarang = bahasa desain asli produk.
+- `public/og-image.png` digambar ulang dengan kata-kata asli produk
+  ("Interactive Disaster Evacuation Learning Media" +
+  "Learn. Simulate. Stay Safe.").
+- `e2e/landing.spec.ts` ditulis ulang untuk beranda asli (5 tes);
+  `scripts/check-static.mjs` mendapat gate anti-SaaS (frasa pola lama
+  = gagal) + pengecualian tercatat untuk pola garis rambu hero.
+- README, PRD, ARCHITECTURE, TESTING, DEPLOY, diagram dibersihkan
+  dari klaim panel peta/BFS di landing.
+
+### Fixed
+- (Tidak ada bug fungsional baru — revert ini mengembalikan perilaku
+  beranda ke yang penulisnya bangun.)
+
 ## [0.2.0] - 2026-11-19
 
 ### Added

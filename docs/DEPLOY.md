@@ -44,14 +44,15 @@ EOF
 
 Checklist:
 
-- [ ] root 200 + `<title>` SafeKids + marker landing di `index.html`
+- [ ] root 200 + `<title>` SafeKids + marker beranda di `index.html`
 - [ ] semua tag `og:*` / `twitter:*` ada di `index.html` hasil build
       (Vite SPA: tag ada di `index.html` source, bukan hasil render JS)
 - [ ] `og-image.png` 200 dengan `Content-Type: image/*` (bukan
       `text/html` — Pages fallback menipu: file hilang pun bisa
       mengembalikan `index.html` 200)
-- [ ] marker landing ada di bundle JS hasil build (`dist/assets/index-*.js`
-      mengandung "Belajar", "Peta Evakuasi", "Langkah optimal") —
+- [ ] marker beranda ada di bundle JS hasil build (`dist/assets/index-*.js`
+      mengandung "SafeKids", "Peta Konsep Pembelajaran",
+      "Alur Pembelajaran Hari Ini") —
       `index.html` Vite hanya shell
 - [ ] deep link `/simulator` 200 (SPA fallback `_redirects` jalan)
 

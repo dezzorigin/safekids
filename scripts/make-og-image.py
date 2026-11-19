@@ -44,21 +44,23 @@ d.text((W - 188, 82), "3D", font=f_stamp, fill=INK)
 # title
 f_title = ImageFont.truetype(SANS_B, 132)
 d.text((84, 150), "SafeKids", font=f_title, fill=INK)
-# yellow marker behind "selamat"
-f_sub = ImageFont.truetype(SANS_B, 44)
-d.rectangle([88, 322, 88 + d.textlength("Belajar selamat", font=f_sub) + 16, 322 + 58], fill=YELLOW, outline=INK, width=3)
-d.text((96, 324), "Belajar selamat", font=f_sub, fill=INK)
-d.text((88, 392), "dari bencana, sambil main.", font=f_sub, fill=INK)
+# subjudul ASLI produk (bukan headline karangan)
+f_sub = ImageFont.truetype(SANS_B, 40)
+d.text((88, 322), "Interactive Disaster Evacuation", font=f_sub, fill=INK)
+d.text((88, 372), "Learning Media", font=f_sub, fill=INK)
+f_tag = ImageFont.truetype(MONO_B, 30)
+d.rectangle([88, 430, 88 + d.textlength("LEARN. SIMULATE. STAY SAFE.", font=f_tag) + 24, 430 + 46], fill=YELLOW, outline=INK, width=3)
+d.text((100, 438), "LEARN. SIMULATE. STAY SAFE.", font=f_tag, fill=INK)
 
 # dashed evacuation route (bottom-left panel)
-rx0, ry0, rx1, ry1 = 88, 470, 560, 560
+rx0, ry0, rx1, ry1 = 88, 490, 560, 566
 d.rectangle([rx0, ry0, rx1, ry1], outline=INK, width=3)
 for gx in range(rx0 + 47, rx1, 47):
     d.line([(gx, ry0), (gx, ry1)], fill=(200, 200, 190), width=2)
-for gy in range(ry0 + 30, ry1, 30):
+for gy in range(ry0 + 25, ry1, 25):
     d.line([(rx0, gy), (rx1, gy)], fill=(200, 200, 190), width=2)
 # route: dashed polyline start (bottom-left) -> safe point (top-right)
-pts = [(rx0 + 23, ry0 + 67), (rx0 + 23, ry0 + 23), (rx0 + 210, ry0 + 23), (rx0 + 210, ry0 + 67), (rx0 + 400, ry0 + 67), (rx0 + 400, ry0 + 23)]
+pts = [(rx0 + 23, ry0 + 57), (rx0 + 23, ry0 + 23), (rx0 + 210, ry0 + 23), (rx0 + 210, ry0 + 57), (rx0 + 400, ry0 + 57), (rx0 + 400, ry0 + 23)]
 for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
     steps = max(abs(x2 - x1), abs(y2 - y1)) // 12
     for i in range(0, steps, 2):
