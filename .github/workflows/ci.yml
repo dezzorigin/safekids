@@ -138,6 +138,30 @@ jobs:
       - name: E2E landing (desktop + mobile Pixel 7)
         run: npm run e2e
 
+      # Media capture README (e2e/media-capture.spec.ts): screenshot adegan
+      # kunci ke media-capture/ + video Playwright (.webm) -> demo.mp4.
+      # Artifact `readme-media` diunduh lalu di-commit ke docs/ (README).
+      - name: Convert walkthrough video to MP4
+        if: always()
+        run: |
+          set -euo pipefail
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          VIDEO=$(find test-results -name 'video.webm' -print -quit)
+          test -n "$VIDEO" || { echo "FAIL: video.webm tidak ditemukan di test-results/"; find test-results -type f | head -20; exit 1; }
+          echo "video sumber: $VIDEO"
+          mkdir -p media-capture
+          ffmpeg -y -i "$VIDEO" -c:v libx264 -pix_fmt yuv420p -movflags +faststart media-capture/demo.mp4
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,codec_name -of default=noprint_wrappers=1 media-capture/demo.mp4
+          ls -la media-capture/
+
+      - name: Upload readme media (screenshots + demo video)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: readme-media
+          path: media-capture/
+          if-no-files-found: error
+
       - name: Unggah trace saat gagal
         if: failure()
         uses: actions/upload-artifact@v4
