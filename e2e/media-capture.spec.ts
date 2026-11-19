@@ -33,7 +33,9 @@ test('media capture: alur siswa beranda → kelompok → simulator 3D (desktop)'
   // Adegan 3: pilih Kelompok 1 -> sesi (Peta Konsep).
   await page.locator('.group-button').first().click()
   await expect(page).toHaveURL(/\/mission/, { timeout: 15000 })
-  await expect(page.locator('h1').first()).toContainText('Peta Konsep')
+  // h1 pertama di /mission adalah judul TopNav ("Mission Briefing"),
+  // jadi asersi pakai heading halaman ("Peta Konsep & Tujuan Pembelajaran").
+  await expect(page.getByRole('heading', { name: /Peta Konsep/ })).toBeVisible()
   await page.waitForTimeout(2000)
   await page.screenshot({ path: 'media-capture/03-mission.png' })
 
