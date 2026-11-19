@@ -399,7 +399,7 @@ export default function AdminDashboard() {
         doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15)
         doc.setFontSize(10)
         doc.setTextColor(136, 136, 136)
-        doc.text("SafeKids — PGMI, UIN Ar-Raniry 2026", 14, pageHeight - 10)
+        doc.text("SafeKids — Disaster Evacuation Learning Media", 14, pageHeight - 10)
         doc.text(`Halaman ${pageNumber}`, pageWidth - 14, pageHeight - 10, { align: "right" })
       }
 

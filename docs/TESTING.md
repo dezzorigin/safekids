@@ -22,7 +22,7 @@
 1. Beranda tampil: judul, hero asli, 3 kartu quick-start, CTA guru/siswa, tautan panduan.
 2. Peta konsep + alur: 6 langkah ±90 menit, keenam label langkah.
 3. CTA guru membuka `/admin/login`.
-4. Footer: kredit Najwa Azzahra + NIM + tautan GitHub.
+4. Footer: branding SafeKids + tautan GitHub.
 5. Mobile 390px (Pixel 7): tanpa scroll horizontal.
 
 Jalankan lokal (butuh browser Playwright — **tidak bisa di VM dev**,

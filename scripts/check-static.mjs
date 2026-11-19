@@ -62,10 +62,13 @@ for (const phrase of [
   'Alur Pembelajaran Hari Ini',
   '6 langkah',
   '±90 menit',
-  'Najwa Azzahra',
-  '240209050',
+  'SafeKids — Disaster Evacuation Learning Media',
 ]) {
   check(landing.includes(phrase), `copy/struktur asli hilang dari beranda: "${phrase}"`)
+}
+// ── White-label (PR #3): tanpa atribusi personal/institusi di beranda ─────
+for (const phrase of ['Najwa Azzahra', '240209050', 'PGMI', 'UIN Ar-Raniry', 'Ar-Raniry']) {
+  check(!landing.includes(phrase), `white-label: atribusi terlarang masih ada di beranda: "${phrase}"`)
 }
 // ── Larangan pola SaaS (hasil revert PR #1) ────────────────────────────────
 for (const phrase of ['Peta Evakuasi — Level', 'Langkah optimal', 'Satu sesi, semua alat guru', 'Guru pegang kendali', 'ticker-track', 'Belajar selamat']) {

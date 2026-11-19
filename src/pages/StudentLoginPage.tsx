@@ -288,7 +288,7 @@ export default function StudentLoginPage() {
       >
         {/* 1. Top Badge */}
         <div className="badge-item">
-          🌊 PGMI · UIN AR-RANIRY 2026
+          🌊 LEARN. SIMULATE. STAY SAFE.
         </div>
 
         {/* 2. Brand Title */}

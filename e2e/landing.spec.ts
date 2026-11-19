@@ -10,7 +10,7 @@ test('beranda tampil: judul, hero asli, CTA guru/siswa', async ({ page }) => {
   await expect(page.locator('h1').first()).toHaveText('SafeKids')
   await expect(page.locator('text=Interactive Disaster Evacuation Learning Media').first()).toBeVisible()
   await expect(page.locator('text=Learn. Simulate. Stay Safe.').first()).toBeVisible()
-  await expect(page.locator('text=PGMI').first()).toBeVisible()
+  await expect(page.locator('text=Media Pembelajaran Evakuasi Bencana').first()).toBeVisible()
   // 3 kartu quick-start asli
   await expect(page.locator('text=Pilih Peran').first()).toBeVisible()
   await expect(page.locator('text=Ikuti Sesi').first()).toBeVisible()
@@ -40,11 +40,10 @@ test('CTA guru membuka halaman login guru', async ({ page }) => {
   await expect(page).toHaveURL(/\/admin\/login/)
 })
 
-test('footer: kredit + tautan GitHub', async ({ page }) => {
+test('footer: branding SafeKids + tautan GitHub', async ({ page }) => {
   await page.goto('/')
   const footer = page.locator('footer')
-  await expect(footer.locator('text=Najwa Azzahra').first()).toBeVisible()
-  await expect(footer.locator('text=240209050').first()).toBeVisible()
+  await expect(footer.locator('text=SafeKids — Disaster Evacuation Learning Media').first()).toBeVisible()
   await expect(footer.locator('a[href="https://github.com/dezzorigin/safekids"]').first()).toBeVisible()
 })
 

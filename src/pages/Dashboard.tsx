@@ -145,7 +145,7 @@ export default function Dashboard() {
             <span className="text-black">Teacher!</span>
           </h2>
           <p className="text-sm font-black text-black max-w-lg">
-            Media Pembelajaran Evakuasi Bencana untuk Siswa MI/SD — <strong className="text-black">PGMI, UIN Ar-Raniry 2026</strong>
+            Media Pembelajaran Evakuasi Bencana untuk Siswa MI/SD — <strong className="text-black">oleh dezzorigin</strong>
           </p>
         </div>
       </motion.div>
