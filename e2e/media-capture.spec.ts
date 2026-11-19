@@ -12,6 +12,10 @@ test.use({ video: { mode: 'on', size: { width: 1280, height: 800 } } })
 
 test('media capture: alur siswa beranda → kelompok → simulator 3D (desktop)', async ({ page }) => {
   test.skip(test.info().project.name !== 'desktop', 'media capture desktop only')
+  // Timeout config 30 detik tidak cukup: jeda pacing video + tirai +
+  // tunggu canvas 3D. Naikkan khusus tes ini (run 44528716237 gagal
+  // "Test timeout of 30000ms exceeded" di waitForTimeout terakhir).
+  test.setTimeout(120_000)
   // Demo mode: tanpa kunci Supabase, client memakai placeholder host.
   // Abort traffic itu supaya halaman kelompok langsung fallback ke
   // [1..5] tanpa menunggu DNS/fetch yang bisa menggantung di runner.
@@ -55,7 +59,7 @@ test('media capture: alur siswa beranda → kelompok → simulator 3D (desktop)'
   // bila canvas tak muncul — screenshot level-select sudah cukup.
   try {
     await page.locator('text=Mulai Gempa Bumi').first().click()
-    await page.locator('canvas').first().waitFor({ state: 'visible', timeout: 20000 })
+    await page.locator('canvas').first().waitFor({ state: 'visible', timeout: 12000 })
     await page.waitForTimeout(2500)
     await page.screenshot({ path: 'media-capture/05-simulator-3d.png' })
   } catch {
