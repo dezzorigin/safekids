@@ -56,7 +56,7 @@ for (const tag of ['og:title', 'og:description', 'og:type', 'og:url', 'og:image'
   check(html.includes(tag), `tag ${tag} hilang dari index.html`)
 }
 check(html.includes('summary_large_image'), 'twitter:card harus summary_large_image')
-check(html.includes('https://safekids.pages.dev/og-image.png'),
+check(html.includes('https://safekids-app.pages.dev/og-image.png'),
   'og:image harus URL absolut ke og-image.png')
 // ── og-image.png: ada, 1200×630, ≥ 10 KB ───────────────────────────────────
 const ogPath = 'public/og-image.png'

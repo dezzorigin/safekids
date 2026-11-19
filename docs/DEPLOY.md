@@ -2,7 +2,7 @@
 
 ## 1. Target
 
-- **URL produksi:** https://safekids.pages.dev/
+- **URL produksi:** https://safekids-app.pages.dev/
 - **Proyek Cloudflare Pages:** `safekids`
 - **Sumber:** hasil build Vite (`dist/`), deploy direct-upload via
   `~/workspace/github-actions/cf_pages.py` (token dari vault — jangan
@@ -33,9 +33,9 @@ dari Cloudflare):
 python3 - <<'EOF'
 import urllib.request
 UA = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'}
-for url in ['https://safekids.pages.dev/',
-            'https://safekids.pages.dev/og-image.png',
-            'https://safekids.pages.dev/compass.svg']:
+for url in ['https://safekids-app.pages.dev/',
+            'https://safekids-app.pages.dev/og-image.png',
+            'https://safekids-app.pages.dev/compass.svg']:
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.build_opener().open(req, timeout=30) as r:
         print(url, r.status, r.headers.get('Content-Type'))

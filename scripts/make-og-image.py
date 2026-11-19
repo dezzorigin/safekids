@@ -83,7 +83,7 @@ for label, bg in chips:
 f_meta = ImageFont.truetype(MONO, 26)
 d.text((x, 545), "6 langkah  ·  ±90 menit", font=f_meta, fill=MUTED)
 f_url = ImageFont.truetype(MONO_B, 28)
-d.text((x, 585 - 8), "safekids.pages.dev", font=f_url, fill=INK)
+d.text((x, 585 - 8), "safekids-app.pages.dev", font=f_url, fill=INK)
 
 img.save(OUT, "PNG", optimize=True)
 print("saved", OUT, os.path.getsize(OUT), "bytes")

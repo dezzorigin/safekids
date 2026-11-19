@@ -1,6 +1,6 @@
 # SafeKids — Belajar Selamat dari Bencana, Sambil Main
 
-**Live:** https://safekids.pages.dev/ ·
+**Live:** https://safekids-app.pages.dev/ ·
 **Repo:** https://github.com/dezzorigin/safekids
 
 SafeKids adalah media pembelajaran evakuasi bencana interaktif untuk
@@ -13,7 +13,7 @@ UIN Ar-Raniry 2026 (Najwa Azzahra, NIM 240209050).
 > `docs/TESTING.md` §5). Gambar di bawah ini adalah kartu preview,
 > bukan screenshot aplikasi.
 
-![SafeKids — kartu preview](https://safekids.pages.dev/og-image.png)
+![SafeKids — kartu preview](https://safekids-app.pages.dev/og-image.png)
 
 ## Cara main (satu sesi kelas)
 
