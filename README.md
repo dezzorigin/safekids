@@ -6,8 +6,8 @@
 SafeKids — *Interactive Disaster Evacuation Learning Media for
 Elementary Students*. Media pembelajaran evakuasi bencana interaktif
 untuk siswa sekolah dasar: simulasi 3D gempa, banjir, dan tsunami di
-peta 10×10, dipandu guru dalam 6 langkah ±90 menit. Dibuat untuk PGMI
-UIN Ar-Raniry 2026 (Najwa Azzahra, NIM 240209050).
+peta 10×10, dipandu guru dalam 6 langkah ±90 menit. Dikembangkan oleh
+dezzorigin.
 
 > **Screenshot & video demo:** menyusul dari browser live (follow-up —
 > screenshot lokal tidak bisa dibuat dari VM dev; lihat
@@ -98,5 +98,4 @@ e2e/landing.spec.ts         # Playwright
 MIT — lihat [LICENSE](./LICENSE).
 
 ---
-Dikembangkan oleh **dezzorigin** (Nabil Aulia Dika) · Materi oleh
-**Najwa Azzahra** (PGMI, UIN Ar-Raniry).
+Dikembangkan oleh **dezzorigin** · SafeKids — Disaster Evacuation Learning Media.

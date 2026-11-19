@@ -8,8 +8,8 @@
 | Deskripsi | Media pembelajaran evakuasi bencana interaktif untuk siswa SD |
 | Tech Stack | Vite 5 + React 18 + TypeScript + React Three Fiber + Supabase |
 | Status | Proper (v0.2.0) — live di Cloudflare Pages |
-| Pemilik | Najwa Azzahra — NIM 240209050, PGMI UIN Ar-Raniry 2026 |
-| Pengembang | Nabil Aulia Dika (dezzorigin) |
+| Pemilik | dezzorigin (SafeKids) |
+| Pengembang | dezzorigin |
 | Versi Dokumen | 2.0 (19 Nov 2026) |
 | Bahasa | Bahasa Indonesia |
 
