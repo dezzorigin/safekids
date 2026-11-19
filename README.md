@@ -9,12 +9,34 @@ untuk siswa sekolah dasar: simulasi 3D gempa, banjir, dan tsunami di
 peta 10×10, dipandu guru dalam 6 langkah ±90 menit. Dikembangkan oleh
 dezzorigin.
 
-> **Screenshot & video demo:** menyusul dari browser live (follow-up —
-> screenshot lokal tidak bisa dibuat dari VM dev; lihat
-> `docs/TESTING.md` §5). Gambar di bawah ini adalah kartu preview,
-> bukan screenshot aplikasi.
+## Screenshot
 
-![SafeKids — kartu preview](https://safekids-app.pages.dev/og-image.png)
+Screenshot asli aplikasi, direkam Playwright dari hasil build di CI
+(1280×800, desktop):
+
+![SafeKids — beranda: hero + 3 kartu quick-start + CTA guru/siswa](docs/screenshots/01-home.png)
+
+![SafeKids — pilih kelompok siswa](docs/screenshots/02-groups.png)
+
+![SafeKids — sesi: Peta Konsep & Tujuan Pembelajaran](docs/screenshots/03-mission.png)
+
+![SafeKids — simulator 3D: pilih level Gempa / Banjir / Tsunami](docs/screenshots/04-simulator.png)
+
+![SafeKids — simulator 3D: level Gempa Bumi dimulai](docs/screenshots/05-simulator-3d.png)
+
+## Video demo
+
+[![Video demo SafeKids — alur siswa: beranda → kelompok → sesi → simulator 3D](docs/screenshots/05-simulator-3d.png)](docs/demo.mp4)
+
+[▶ Tonton demo (MP4, 25 detik)](docs/demo.mp4)
+
+> Video menunjukkan alur siswa yang beneran jalan: beranda → masuk
+> sebagai siswa → pilih kelompok → sesi (Peta Konsep) → simulator 3D
+> (pilih level + mulai Gempa). Direkam dalam mode demo (tanpa kunci
+> Supabase): pilih kelompok tetap jalan lokal — login guru dan
+> sinkronisasi data kelas tidak ditunjukkan di video ini. Kartu
+> `og-image.png` tetap dipakai untuk link preview — itu gambar preview
+> yang digambar, bukan screenshot.
 
 ## Beranda
 
