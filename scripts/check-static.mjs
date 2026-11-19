@@ -1,9 +1,14 @@
-// Gate P0 anti-slop + kelengkapan tag OG/Twitter untuk landing SafeKids.
+// Gate P0 anti-slop + kelengkapan tag OG/Twitter untuk beranda ASLI SafeKids.
 // Dijalankan CI (job static-checks) — gagal = PR tidak merge.
 // Aturan dari ~/workspace/github-actions/ui-anti-slop.md §2-3.
-// Kontrak desain: docs/DESIGN.md (Kertas, Tinta, Kuning Rambu, Koral
-// Alarm, Mint Aman, Langit; Nunito + JetBrains Mono; radius 0;
-// detail khas jalur evakuasi dashed + stempel nomor).
+// Kontrak desain: docs/DESIGN.md (bahasa desain ASLI produk: Kertas,
+// Tinta, Kuning Rambu, Koral Alarm, Mint Aman, Langit; Nunito +
+// JetBrains Mono; radius 0; garis rambu + stempel nomor).
+//
+// PENGECUALIAN TERCATAT: pola garis kuning-putih di hero
+// (`repeating-linear-gradient` 45°) adalah motif ASLI penulis (garis
+// rambu, bukan sapuan warna) dan diizinkan eksplisit di bawah —
+// gradient lain tetap terlarang.
 import { readFileSync, existsSync, statSync } from 'node:fs'
 
 const landing = readFileSync('src/pages/WelcomePage.tsx', 'utf8')
@@ -16,17 +21,19 @@ function check(cond, msg) {
   if (!cond) failures.push(msg)
 }
 
-// ── P0: gradient di hero/background landing ───────────────────────────────
-check(!/linear-gradient|radial-gradient|conic-gradient/i.test(landing),
-  'P0: gradient terlarang di landing (WelcomePage)')
+// ── P0: gradient — kecuali pola garis rambu asli ───────────────────────────
+const flat = landing.replace(/\s+/g, '').toLowerCase()
+const stripe =
+  'repeating-linear-gradient(45deg,#ffe135,#ffe1354px,#fffef74px,#fffef720px)'
+check(flat.includes(stripe), 'pola garis rambu hero asli hilang dari WelcomePage')
+const withoutStripe = flat.replace(stripe, '')
+check(!/linear-gradient|radial-gradient|conic-gradient/i.test(withoutStripe),
+  'P0: gradient terlarang di beranda (di luar pola garis rambu asli)')
 check(!/bg-clip-text|background-clip:\s*text/i.test(landing),
   'P0: teks headline gradient terlarang')
-// ── P0: hero tengah + 3 kartu identik ──────────────────────────────────────
-// Landing ini hero 2 kolom (grid lg:grid-cols-2) — bukan tengah.
-check(/lg:grid-cols-2/.test(landing), 'hero harus 2 kolom, bukan tengah')
 // ── P0: emoji mentah sebagai ikon fungsi ───────────────────────────────────
 const emojiRe = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u
-check(!emojiRe.test(landing), 'P0: emoji mentah sebagai ikon terlarang di landing')
+check(!emojiRe.test(landing), 'P0: emoji mentah sebagai ikon terlarang di beranda')
 // ── P0: font Inter / Roboto sebagai font utama ─────────────────────────────
 check(/Nunito/.test(css + html + tailwind) && /JetBrains Mono/.test(css + html + tailwind),
   'font harus Nunito (display/body) + JetBrains Mono (label/data)')
@@ -38,18 +45,35 @@ for (const phrase of ['Elevate your workflow', 'Unlock the power', 'Supercharge'
     `P0: copy generik terlarang: "${phrase}"`)
 }
 // ── P0: rounded-2xl shadow-lg di semua permukaan ───────────────────────────
-check(!/rounded-2xl/.test(landing), 'P0: rounded-2xl terlarang (radius landing = 0)')
+check(!/rounded-2xl/.test(landing), 'P0: rounded-2xl terlarang (radius beranda = 0)')
 // ── P0: statistik vanity tanpa sumber ──────────────────────────────────────
 for (const phrase of ['99.9% uptime', '10x faster', '50k+ users', '10x lebih cepat']) {
   check(!landing.includes(phrase), `P0: statistik vanity tanpa sumber: "${phrase}"`)
 }
-// ── Angka yang dipakai harus angka nyata produk ────────────────────────────
-for (const phrase of ['6 langkah', '±90 menit', '10×10', '75 detik']) {
-  check(landing.includes(phrase), `angka nyata produk hilang dari landing: "${phrase}"`)
+// ── Struktur + copy ASLI produk harus utuh ─────────────────────────────────
+for (const phrase of [
+  'SafeKids',
+  'Learn. Simulate. Stay Safe.',
+  'Pilih Peran',
+  'Ikuti Sesi',
+  'Bermain & Belajar',
+  'Download Panduan Lengkap',
+  'Peta Konsep Pembelajaran',
+  'Alur Pembelajaran Hari Ini',
+  '6 langkah',
+  '±90 menit',
+  'Najwa Azzahra',
+  '240209050',
+]) {
+  check(landing.includes(phrase), `copy/struktur asli hilang dari beranda: "${phrase}"`)
 }
-// ── GitHub kanan atas ──────────────────────────────────────────────────────
+// ── Larangan pola SaaS (hasil revert PR #1) ────────────────────────────────
+for (const phrase of ['Peta Evakuasi — Level', 'Langkah optimal', 'Satu sesi, semua alat guru', 'Guru pegang kendali', 'ticker-track', 'Belajar selamat']) {
+  check(!landing.includes(phrase), `sisa pola landing SaaS harus dihapus: "${phrase}"`)
+}
+// ── GitHub (footer, higiene repo) ──────────────────────────────────────────
 check(landing.includes('https://github.com/dezzorigin/safekids'),
-  'tautan GitHub repo harus ada di landing (navbar)')
+  'tautan GitHub repo harus ada di beranda (footer)')
 // ── Tag OG/Twitter di index.html (Vite SPA: tag harus di source) ──────────
 for (const tag of ['og:title', 'og:description', 'og:type', 'og:url', 'og:image',
   'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image']) {

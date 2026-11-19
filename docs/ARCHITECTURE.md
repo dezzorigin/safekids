@@ -29,7 +29,7 @@ Diagram visual (HTML+SVG): `docs/diagram.html`.
 | Animasi | Framer Motion 11 | Transisi halaman (`PageTransition`) |
 | Data | Supabase JS 2 | `src/lib/supabaseClient.ts` (placeholder bila kosong) |
 | Ekspor | jspdf + jspdf-autotable, docx, file-saver | Rekap guru → PDF/Word |
-| Ikon | lucide-react | SVG satu bobot; nol emoji di landing |
+| Ikon | lucide-react | SVG satu bobot; nol emoji di beranda |
 | E2E | Playwright 1.65 | `e2e/landing.spec.ts`, desktop + Pixel 7 |
 
 ## 3. Struktur
@@ -43,7 +43,7 @@ public/
 src/
   main.tsx                  # entry React
   App.tsx                   # routing (lihat §4)
-  index.css                 # Tailwind + token + ticker + a11y
+  index.css                 # Tailwind + token + a11y
   context/                  # AuthContext (Supabase), CurtainContext (transisi tirai)
   store/useSimulationStore.ts  # LEVELS (gempa/banjir/tsunami), status game, BFS
   components/
@@ -63,7 +63,7 @@ e2e/landing.spec.ts         # Playwright
 
 | Rute | Halaman | Akses |
 |---|---|---|
-| `/` | WelcomePage (landing rebuild) | publik |
+| `/` | WelcomePage (beranda asli produk) | publik |
 | `/student/login` | StudentLoginPage (splash + tirai) | publik |
 | `/student/group` | StudentGroupPage | publik (pilih kelompok) |
 | `/mission`, `/mission/:toolId` | MissionBriefing | dalam MainLayout |
@@ -87,8 +87,6 @@ supaya landing tidak menunggu chunk 3D (±1 MB).
 - **Level simulasi** — `LEVELS` di `useSimulationStore.ts`: grid 10×10,
   start, titik aman (goals), rintangan (obstacles), pagar pohon
   (treeCoords), api (fireCoords, kosong di semua level saat ini).
-  Landing menghitung rute terpendek dengan BFS dari data yang sama —
-  bukan angka hardcode.
 - **Sesi siswa** — kelompok dipilih disimpan di `sessionStorage`
   (`src/lib/studentSession.ts`); `AuthContext` membedakan guru
   (login Supabase) vs siswa (punya kelompok, tanpa login).
@@ -120,5 +118,6 @@ supaya landing tidak menunggu chunk 3D (±1 MB).
   halaman non-3D tidak memuat three.js.
 - **Neo-brutalism dipertahankan** dari aplikasi asli (token
   `brutal-*` di Tailwind) karena sudah nyambung dengan dunia
-  anak-anak; landing baru menaatinya dengan disiplin anti-slop
-  (lihat `docs/DESIGN.md`).
+  anak-anak; beranda diperbaiki seperlunya saja (emoji → ikon Lucide)
+  mengikuti `docs/DESIGN.md` — tanpa rebuild jadi landing SaaS
+  (arah Nabil 19 Nov 2026, mode AUDIT-FIX).

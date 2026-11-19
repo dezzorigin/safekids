@@ -1,54 +1,37 @@
 import { test, expect } from '@playwright/test'
 
-// Landing SafeKids hasil rebuild (repo #51): navbar sticky, hero 2 kolom
-// + panel peta evakuasi, ticker, fitur asimetris, alur 6 langkah,
-// peta konsep, strip guru, footer. Semua tombol/link diuji membuka
-// rute yang benar-benar ada — tombol mati = cacat produk.
+// Beranda ASLI SafeKids (bukan landing SaaS): hero + peta konsep +
+// alur 6 langkah + footer. Yang diuji: konten asli produk + tiap
+// tombol/link membuka rute yang benar-benar ada — tombol mati = cacat.
 
-test('landing tampil: judul, hero 2 kolom, panel peta evakuasi', async ({ page }) => {
+test('beranda tampil: judul, hero asli, CTA guru/siswa', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/SafeKids/i)
-  await expect(page.locator('h1').first()).toContainText('Belajar')
-  await expect(page.locator('h1').first()).toContainText('selamat')
-  // panel peta: grid SVG + data jujur dari store
-  await expect(page.locator('text=Peta Evakuasi').first()).toBeVisible()
-  await expect(page.locator('text=Langkah optimal:').first()).toBeVisible()
+  await expect(page.locator('h1').first()).toHaveText('SafeKids')
+  await expect(page.locator('text=Interactive Disaster Evacuation Learning Media').first()).toBeVisible()
+  await expect(page.locator('text=Learn. Simulate. Stay Safe.').first()).toBeVisible()
+  await expect(page.locator('text=PGMI').first()).toBeVisible()
+  // 3 kartu quick-start asli
+  await expect(page.locator('text=Pilih Peran').first()).toBeVisible()
+  await expect(page.locator('text=Ikuti Sesi').first()).toBeVisible()
+  await expect(page.locator('text=Bermain & Belajar').first()).toBeVisible()
   // CTA guru + siswa
   await expect(page.locator('#cta-guru-btn')).toBeVisible()
   await expect(page.locator('#cta-siswa-btn')).toBeVisible()
-  // GitHub kanan atas (navbar) mengarah ke repo
-  const gh = page.locator('a[aria-label="Kode sumber SafeKids di GitHub"]')
-  await expect(gh).toHaveAttribute('href', 'https://github.com/dezzorigin/safekids')
+  // tautan panduan guru (PDF penulis)
+  await expect(page.locator('text=Download Panduan Lengkap').first()).toBeVisible()
 })
 
-test('pemilih level peta mengganti data (BFS asli, bukan mockup mati)', async ({ page }) => {
+test('peta konsep + alur: 6 langkah ±90 menit', async ({ page }) => {
   await page.goto('/')
-  const optimal = page.locator('text=Langkah optimal:').first()
-  await expect(optimal).toBeVisible()
-  const gempa = await optimal.textContent()
-  await page.getByRole('button', { name: 'Tsunami', exact: true }).click()
-  await expect(page.locator('text=Peta Evakuasi — Level Tsunami').first()).toBeVisible()
-  await expect(page.locator('text=Ombak datang dalam 75 detik').first()).toBeVisible()
-  const tsunami = await optimal.textContent()
-  expect(tsunami).not.toEqual(gempa)
-  await page.getByRole('button', { name: 'Banjir', exact: true }).click()
-  await expect(page.locator('text=Peta Evakuasi — Level Banjir').first()).toBeVisible()
-})
-
-test('fitur + alur: 6 langkah, tiap kartu membuka modulnya', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.locator('text=Satu sesi, semua alat guru sudah siap.')).toBeVisible()
-  await expect(page.locator('text=Simulator Evakuasi 3D')).toBeVisible()
-  await expect(page.locator('text=Alur pembelajaran hari ini')).toBeVisible()
-  // 6 kartu langkah
-  await expect(page.locator('#alur ol li')).toHaveCount(6)
-  // kartu simulator membuka /simulator (modul 3D lazy-load)
-  await page.locator('text=Simulator Evakuasi 3D').click()
-  await expect(page).toHaveURL(/\/simulator/)
-  await page.goto('/')
-  // langkah "Evacuation 3D" membuka simulator juga
-  await page.locator('#alur ol li', { hasText: 'Evacuation 3D' }).click()
-  await expect(page).toHaveURL(/\/simulator/)
+  await expect(page.locator('text=Peta Konsep Pembelajaran').first()).toBeVisible()
+  await expect(page.locator('text=Alur Pembelajaran Hari Ini').first()).toBeVisible()
+  await expect(page.locator('text=6 langkah').first()).toBeVisible()
+  await expect(page.locator('text=±90 menit').first()).toBeVisible()
+  // 6 kartu langkah asli
+  for (const label of ['Peta Konsep', 'Spin Wheel', 'Evacuation Video', 'Tutorial & Ice Break', 'Evacuation 3D', 'Quiz + Refleksi']) {
+    await expect(page.locator(`text=${label}`).first()).toBeVisible()
+  }
 })
 
 test('CTA guru membuka halaman login guru', async ({ page }) => {
@@ -57,7 +40,7 @@ test('CTA guru membuka halaman login guru', async ({ page }) => {
   await expect(page).toHaveURL(/\/admin\/login/)
 })
 
-test('footer: kredit + tautan GitHub + panduan', async ({ page }) => {
+test('footer: kredit + tautan GitHub', async ({ page }) => {
   await page.goto('/')
   const footer = page.locator('footer')
   await expect(footer.locator('text=Najwa Azzahra').first()).toBeVisible()

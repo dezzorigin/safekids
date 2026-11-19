@@ -1,81 +1,66 @@
 # DESIGN.md — SafeKids (kontrak arah desain, repo P1 #51)
 
 Ditulis SEBELUM coding (standar anti-slop P1, 19 Nov 2026).
-Referensi pemenang, palet, tipografi, layout, dan detail khas dikunci di sini;
-landing dibangun mengikuti kontrak ini, bukan selera sesaat.
+**Revisi 19 Nov 2026 ~18:30 WIB (arah baru Nabil — mode AUDIT-FIX):**
+pola rebuild jadi landing page SaaS DIBATALKAN. Versi pertama kontrak
+ini (referensi Mentorix, hero 2 kolom, panel peta evakuasi, fitur
+asimetris, ticker) sudah sempat di-merge sebagai PR #1 — dan
+**di-revert** oleh PR #2. Yang berlaku sekarang: UI ASLI produk
+sebagaimana penulisnya membangunnya; yang diperbaiki hanya pelanggaran
+P0 anti-slop di UI itu sendiri (emoji mentah → ikon Lucide SVG).
+Tidak ada landing SaaS, tidak ada fitur karangan, tidak ada data contoh
+yang dipajang sebagai data asli.
 
-## 1. Referensi
+## 1. Referensi — tur dilakukan, clone SaaS DITOLAK
 
-**Pemenang: Mentorix — Neobrutalism Online Education Platform Landing Page**
-(Dribbble, Relyn LLC) —
-https://dribbble.com/shots/27538236-Mentorix-Neobrutalism-Online-Education-Platform-Landing-Page
+Tur referensi (19 Nov 2026, sebelum arah baru):
+- **Mentorix — Neobrutalism Online Education Platform Landing Page**
+  (Dribbble, Relyn LLC) —
+  https://dribbble.com/shots/27538236-Mentorix-Neobrutalism-Online-Education-Platform-Landing-Page
+- Kandidat kalah: Rocket "Syllabus" (terlalu korporat), Rocket "Sprout"
+  (nada daycare, palet terlalu dekat dengan repo #48).
 
-Kenapa cocok: platform edukasi gaya neo-brutalist — tipografi hitam tebal,
-blok warna bergantian tiap seksi, kartu ber-border tebal + bayangan keras,
-strip ticker, label pil di judul seksi. Rasa itu dipertahankan, isinya
-diganti kurikulum evakuasi bencana untuk siswa SD.
+Keputusan setelah arah baru Nabil (18:28 WIB): **jangan clone
+Mentorix.** SafeKids sudah punya bahasa desain sendiri yang nyambung
+dengan dunianya (kelas SD, rambu evakuasi, stempel): kertas + kuning
+rambu + koral alarm + mint aman, border tebal, bayangan keras, stempel
+nomor. Referensi di atas dicatat sebagai bahan tur saja — rasa yang
+dipertahankan adalah rasa ASLI produk, bukan rasa Mentorix.
 
-Yang diadopsi plek-ketiplek strukturnya:
-- hero energi tinggi, tipografi hitam besar di atas kertas terang;
-- seksi-seksi blok warna bergantian (kertas → kuning → hitam → kertas);
-- strip ticker hitam berjalan di antara hero dan fitur;
-- label pil kecil di atas judul seksi ("Fitur", "Alur", "Peta Konsep");
-- kartu border 4px + bayangan keras 4px, hover geser 2px.
-
-Yang diubah + kenapa:
-- palet Mentorix (cyan/lime elektrik) diganti token kelas SafeKids yang
-  sudah dipakai di dalam aplikasi (kuning rambu, koral alarm, mint aman,
-  langit) — supaya landing dan aplikasi terasa satu produk, bukan dua;
-- hero tengah diganti hero 2 kolom: copy kiri, panel "Peta Evakuasi"
-  kanan (mini peta rute + titik aman) — produknya simulasi 3D, jadi
-  preview produk harus kelihatan di atas lipatan, bukan sekadar headline;
-- katalog kursus diganti 6 langkah pembelajaran ±90 menit (isi nyata
-  dari WelcomePage lama + PRD), tanpa statistik vanity.
-
-Kandidat yang kalah:
-- Rocket "Syllabus" (brutalist education builder) — terlalu korporat,
-  bento grid generik, tidak ada rasa anak-anak.
-- Rocket "Sprout" (preschool, teal catalyst) — hangat tapi palet
-  teal/koral terlalu dekat dengan repo #48 (dotfiles: Teal Caelestia)
-  dan nadanya daycare, bukan simulasi bencana.
-
-## 2. Palet (6 warna bernama, tiap warna punya tugas)
+## 2. Palet (6 warna bernama — token asli aplikasi, tidak diubah)
 
 | Nama | Hex | Peran |
 |---|---|---|
 | Kertas | `#FFFEF7` | latar utama semua seksi terang |
-| Tinta | `#1A1A2E` | teks, border 4px, footer, strip ticker |
-| Kuning Rambu | `#FFE135` | CTA utama, sorot, seksi alur |
+| Tinta | `#1A1A2E` | teks, border 4px, footer |
+| Kuning Rambu | `#FFE135` | latar hero (garis), CTA siswa, sorot |
 | Koral Alarm | `#FF6B6B` | bahaya / bencana, aksen peringatan |
-| Mint Aman | `#4ECDC4` | titik aman, sukses, kartu simulator |
-| Langit | `#74C0FC` | info, kartu video, aksen sekunder |
+| Mint Aman | `#4ECDC4` | titik aman, sukses |
+| Langit | `#74C0FC` | info, aksen sekunder |
 
-Larangan: tanpa gradient ungu/biru di hero/background; tanpa headline
-gradient; tanpa satu-hue saja (palet ini memotong 4 hue: kuning, merah,
-hijau-mint, biru-langit).
+Larangan: tanpa gradient ungu/biru; tanpa headline gradient. Pola
+garis kuning-putih di hero (`repeating-linear-gradient` 45°) adalah
+motif ASLI penulis (garis rambu, bukan sapuan warna) dan dipertahankan
+apa adanya — pengecualian ini dicatat eksplisit di
+`scripts/check-static.mjs`.
 
-## 3. Tipografi (≤ 2 keluarga)
+## 3. Tipografi (≤ 2 keluarga — sama seperti aplikasi)
 
-- **Nunito 400/700/800/900** — display + body. Bulat, ramah anak,
-  sudah dipakai aplikasi; headline 900 dengan tracking ketat.
-- **JetBrains Mono 400/500** — label, angka, cap waktu, dan data
-  (tabular-nums untuk angka: timer 75 detik, 6 langkah, ±90 menit).
+- **Nunito 400/700/800/900** — display + body. Bulat, ramah anak.
+- **JetBrains Mono 400/500** — label, angka, cap waktu (tabular-nums).
 
 Bukan Inter/Roboto/system font untuk semuanya. Body ≤ 75ch.
 
-## 4. Layout (satu kalimat) + detail khas
+## 4. Layout (produk asli) + detail khas
 
-**Layout:** sticky navbar hitam-tipis → hero 2 kolom (copy kiri, panel
-peta evakuasi kanan) → strip ticker hitam → fitur asimetris (1 kartu
-besar simulator + 3 kartu kecil + 1 kartu lebar dashboard guru) →
-alur 6 langkah bernomor → peta konsep → strip "Untuk Guru" →
-footer hitam 2 kolom.
+**Layout (apa adanya dari penulis):** hero tengah (badge → judul
+"SafeKids" → subjudul EN → tagline → 3 kartu quick-start → tombol
+panduan → 2 CTA Guru/Siswa → scroll cue) → seksi Peta Konsep
+(ConceptMap) → seksi Alur 6 langkah (±90 menit) → footer hitam.
 
-**Detail khas: "jalur evakuasi".** Garis putus-putus (dashed) yang
-menghubungkan titik start ke titik aman — dipakai di panel hero
-(mini peta SVG 10×10 grid, rute gempa), di pemisah antar kartu fitur,
-dan sebagai motif nomor langkah (stempel kotak hitam berisi angka
-kuning, bukan lingkaran lembut).
+**Detail khas: stempel + garis rambu.** Kotak hitam berisi angka
+kuning di tiap kartu, bayangan keras 4px, garis kuning-putih diagonal
+di hero — ketiganya sudah ada di produk asli dan dipertahankan.
 
 ## 5. Beda dari repo sebelumnya (#48 dotfiles) — 5 dari 5 sumbu
 
@@ -83,33 +68,29 @@ kuning, bukan lingkaran lembut).
 |---|---|---|
 | Palet | Meja `#F4F5F1` + Tinta + Teal Caelestia + Kuning Tombol | Kertas + Kuning Rambu + Koral Alarm + Mint Aman + Langit |
 | Tipografi | Space Grotesk + IBM Plex Mono | Nunito + JetBrains Mono |
-| Layout | 1 kolom editorial + mockup penuh lebar | Hero 2 kolom + blok warna bergantian + fitur asimetris |
+| Layout | 1 kolom editorial + mockup penuh lebar | Hero tengah + peta konsep + alur 6 langkah (asli produk) |
 | Radius/spacing | radius 4px, meja kerja rapi | radius 0px (keras), bayangan keras 4px, stempel kotak |
-| Detail khas | keycap + mockup desktop | jalur evakuasi dashed + stempel nomor + mini peta grid |
+| Detail khas | keycap + mockup desktop | garis rambu diagonal + stempel nomor + kartu quick-start |
 
-## 6. Larangan P0 yang ditegakkan di landing ini
+## 6. Larangan P0 yang ditegakkan di UI produk ini
 
-- Emoji mentah sebagai ikon fungsi → diganti ikon Lucide SVG
-  (satu bobot, stroke 2px). Emoji hanya tersisa di… tidak ada.
-  Nol emoji di landing baru.
-- Hero tengah + 3 kartu identik → hero 2 kolom, fitur asimetris.
-- Statistik vanity → angka yang dipakai hanya angka nyata produk:
-  3 level bencana, 6 langkah, ±90 menit, grid 10×10, timer tsunami
-  75 detik, 1 sesi kelas. Semuanya bisa dicek di kode
-  (`src/store/useSimulationStore.ts`).
-- Copy generik ("Elevate…", "Unlock…") → copy konkret berbahasa
-  Indonesia: "Belajar selamat dari bencana, sambil main."
-- Footer 4 kolom default → footer hitam 2 kolom.
-- `rounded-2xl shadow-lg` di semua permukaan → radius 0, bayangan
-  keras 4px `#1A1A2E`, hover geser.
+- Emoji mentah sebagai ikon fungsi → **sudah diperbaiki**: semua
+  emoji di `WelcomePage.tsx` diganti ikon Lucide SVG (satu bobot,
+  stroke 2px). Nol emoji di beranda.
+- Statistik vanity → tidak ada; angka yang dipakai hanya angka nyata
+  produk: 3 level bencana, 6 langkah, ±90 menit (semuanya bisa dicek
+  di `src/store/useSimulationStore.ts`).
+- Copy generik ("Elevate…", "Unlock…") → tidak ada; copy dipertahankan
+  dari penulis ("Learn. Simulate. Stay Safe.").
+- Footer 4 kolom default → footer hitam 1 kolom tengah (asli) +
+  tautan GitHub (higiene repo, bukan fitur baru).
 
-## 7. Motion & a11y
+## 7. Motion & a11y (produk asli, dipertahankan)
 
-- Transisi ≤ 100–200ms, ease-out; tombol aktif scale/translate 2px
-  (bukan 0.97 — brutalism memakai geser bayangan, bukan mengecil).
-- `prefers-reduced-motion`: ticker dan animasi dekoratif dimatikan.
+- Transisi ≤ 100–200ms; tombol aktif geser bayangan (brutalism).
+- `prefers-reduced-motion` dihormati (lihat `src/index.css`).
 - Focus-visible: outline 3px Langit. Semua tombol ikon punya
-  `aria-label`. Tag semantik: `header/nav/main/section/footer`, `h1`
-  tunggal di hero.
-- Mobile 390px: hero menumpuk vertikal, panel peta di bawah copy,
-  kartu fitur 1 kolom, target sentuh ≥ 44px, tanpa scroll horizontal.
+  `aria-label`/`aria-hidden` yang benar. Tag semantik:
+  `section/footer`, `h1` tunggal di hero.
+- Mobile 390px: kartu quick-start + langkah menumpuk vertikal,
+  target sentuh ≥ 44px, tanpa scroll horizontal.

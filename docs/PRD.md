@@ -42,8 +42,7 @@ sampai kuis dan refleksi.
 ## 5. Ruang Lingkup
 
 ### In Scope
-- Landing (hero 2 kolom + panel peta evakuasi interaktif, fitur, alur,
-  peta konsep, strip guru, footer) — lihat `docs/DESIGN.md`.
+- Beranda asli (hero + peta konsep + alur 6 langkah) — lihat `docs/DESIGN.md`.
 - Alur siswa: splash → pilih kelompok → misi → kosakata → video →
   tutorial/ice break → simulator 3D → evaluasi → refleksi.
 - Simulator 3D: 3 level (gempa, banjir, tsunami), grid 10×10, avatar,
@@ -63,7 +62,7 @@ sampai kuis dan refleksi.
 
 | # | Fitur | Rute | Keterangan |
 |---|---|---|---|
-| F1 | Landing + peta evakuasi interaktif | `/` | Pilih level gempa/banjir/tsunami; rute terpendek dihitung BFS dari data level asli; tautan ke semua modul |
+| F1 | Beranda asli | `/` | Hero + 3 kartu quick-start + panduan PDF + CTA guru/siswa; peta konsep; alur 6 langkah ±90 menit |
 | F2 | Splash siswa + pilih kelompok | `/student/login`, `/student/group` | Tanpa password; kelompok disimpan di sessionStorage |
 | F3 | Mission briefing | `/mission`, `/mission/:toolId` | 6 langkah sesi |
 | F4 | Vocabulary lab | `/vocabulary` | Kosakata bencana |
@@ -108,7 +107,7 @@ sinkronisasi), deploy statis Cloudflare Pages dengan SPA fallback
 |---|---|
 | Inisialisasi & scaffolding | ✅ |
 | Pengembangan fitur inti (12 fitur di atas) | ✅ |
-| Landing rebuild anti-slop + CI + deploy Pages | ✅ (v0.2.0, 19 Nov 2026) |
+| Beranda asli + CI + deploy Pages | ✅ (v0.2.0, 19 Nov 2026; beranda sempat di-rebuild jadi landing SaaS di PR #1, lalu dikembalikan ke produk asli di v0.2.1) |
 | Screenshot + video demo dari browser live | ⏳ follow-up (lihat README) |
 | Cek adegan 3D dari browser live | ⏳ follow-up |
 | Rapikan conditional hooks di AdminDashboard/MapGrid | ⏳ utang teknis (lihat docs/TESTING.md) |
@@ -126,8 +125,8 @@ sinkronisasi), deploy statis Cloudflare Pages dengan SPA fallback
 
 - `npm run build` (tsc + vite) hijau; `npm run lint` 0 error; e2e
   Playwright hijau (desktop + Pixel 7).
-- Landing: semua tombol/link membuka rute yang ada; panel peta
-  menghitung rute dari data level asli.
+- Beranda: semua tombol/link membuka rute yang ada (CTA guru/siswa,
+  panduan PDF, tautan GitHub footer).
 - Live: root 200, tag OG/Twitter lengkap, `og-image.png` 200 image/png.
 - Tidak ada secret ter-commit (gitleaks di CI).
 
